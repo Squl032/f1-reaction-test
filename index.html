@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>F1 Reaction Test Pro (Calibrated)</title>
+    <meta name="theme-color" content="#000000">
+    <style>
+        :root {
+            --bg-color: #121212;
+            --panel-bg: #1e1e1e;
+            --light-off: #2a2a2a;
+            --light-on: #ff0000;
+            --text-main: #ffffff;
+            --text-sub: #888888;
+            --accent: #e10600;
+            /* F1 Red */
+        }
+
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+            touch-action: manipulation;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        /* 左上角齒輪按鈕 */
+        .settings-btn {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 100;
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            border-radius: 50%;
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .settings-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .settings-btn svg {
+            width: 24px;
+            height: 24px;
+            fill: #fff;
+        }
+
+        /* 設定面板 (Modal) */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(5px);
+            z-index: 200;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-content {
+            background: var(--panel-bg);
+            padding: 30px;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 400px;
+            border: 1px solid #333;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-header {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #333;
+            padding-bottom: 10px;
+        }
+
+        /* 校準滑桿區 */
+        .control-group {
+            margin-bottom: 20px;
+        }
+
+        .control-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+            color: #ccc;
+        }
+
+        .control-value {
+            color: var(--accent);
+            font-weight: bold;
+            font-family: monospace;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 6px;
+            background: #444;
+            border-radius: 3px;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            background: #fff;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        .btn-row {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        .btn-test {
+            background: #333;
+            color: #fff;
+            border: 1px solid #555;
+        }
+
+        .btn-save {
+            background: var(--accent);
+            color: #fff;
+        }
+
+        .btn:active {
+            transform: scale(0.98);
+        }
+
+        /* 遊戲介面 */
+        .header {
+            position: absolute;
+            top: 20px;
+            font-size: 0.9rem;
+            color: var(--text-sub);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .gantry {
+            background: #000;
+            padding: 25px 40px;
+            border-radius: 20px;
+            display: flex;
+            gap: 15px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+            border-bottom: 4px solid #333;
+            margin-bottom: 60px;
+        }
+
+        .light {
+            width: 60px;
+            height: 60px;
+            background-color: var(--light-off);
+            border-radius: 50%;
+            border: 4px solid #111;
+            transition: transform 0.05s;
+            position: relative;
+        }
+
+        .light.on {
+            background-color: var(--light-on);
+            box-shadow: 0 0 30px #ff0000;
+            transform: scale(1.05);
+        }
+
+        /* 燈的光澤感 */
+        .light::after {
+            content: '';
+            position: absolute;
+            top: 15%;
+            left: 15%;
+            width: 30%;
+            height: 25%;
+            border-radius: 50%;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.7) 0%, rgba(255, 255, 255, 0) 60%);
+            opacity: 0.2;
+        }
+
+        .light.on::after {
+            opacity: 0.6;
+        }
+
+
+        .timer-container {
+            height: 150px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #timer {
+            font-size: 6rem;
+            font-weight: 700;
+            font-family: 'Courier New', monospace;
+            letter-spacing: -3px;
+        }
+
+        #status {
+            margin-top: 10px;
+            font-size: 1.2rem;
+            color: var(--text-sub);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        body.state-fail {
+            background-color: #4a1a1a;
+        }
+
+        body.state-success {
+            background-color: #1a4a2a;
+        }
+
+        .footer {
+            position: absolute;
+            bottom: 30px;
+            font-size: 0.8rem;
+            color: #444;
+            text-align: center;
+        }
+
+        #audio-warning {
+            color: #ffaa00;
+            display: none;
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="header">F1 Start Procedure</div>
+
+    <button class="settings-btn" id="open-settings" title="音訊校準">
+        <svg viewBox="0 0 24 24">
+            <path
+                d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.07-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.74,8.87 C2.62,9.08,2.66,9.34,2.86,9.49l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.07,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.47-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z" />
+        </svg>
+    </button>
+
+    <div class="modal-overlay" id="settings-modal">
+        <div class="modal-content">
+            <div class="modal-header">音效校準 (Audio Calibration)</div>
+
+            <div class="control-group">
+                <div class="control-label">
+                    <span>起始延遲 (Start Offset)</span>
+                    <span id="val-offset" class="control-value">0.64s</span>
+                </div>
+                <input type="range" id="input-offset" min="0" max="2" step="0.01" value="0.64">
+                <div style="font-size: 0.8rem; color:#666; margin-top:5px;">跳過音檔前段空白，使亮燈與聲音同步。</div>
+            </div>
+
+            <div class="control-group">
+                <div class="control-label">
+                    <span>播放長度 (Duration)</span>
+                    <span id="val-duration" class="control-value">0.80s</span>
+                </div>
+                <input type="range" id="input-duration" min="0.1" max="2" step="0.05" value="0.8">
+            </div>
+
+            <div class="btn-row">
+                <button class="btn btn-test" id="btn-test-sound">🎵 試聽</button>
+                <button class="btn btn-save" id="btn-save">儲存並關閉</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="gantry">
+        <div class="light" id="l1"></div>
+        <div class="light" id="l2"></div>
+        <div class="light" id="l3"></div>
+        <div class="light" id="l4"></div>
+        <div class="light" id="l5"></div>
+    </div>
+
+    <div class="timer-container">
+        <div id="timer">000</div>
+        <div id="status">Tap to Start</div>
+    </div>
+
+    <div class="footer">
+        <div id="audio-warning">⚠️ 請確認資料夾內有 f1-sound.mp3</div>
+        <div>Tap anywhere to start • Config via Gear Icon</div>
+    </div>
+
+    <script>
+        const AUDIO_FILENAME = 'f1-sound.mp3';
+
+        // DOM Elements
+        const lights = Array.from(document.querySelectorAll('.light'));
+        const timerEl = document.getElementById('timer');
+        const statusEl = document.getElementById('status');
+        const body = document.body;
+
+        // Settings UI Elements
+        const settingsModal = document.getElementById('settings-modal');
+        const openSettingsBtn = document.getElementById('open-settings');
+        const closeSettingsBtn = document.getElementById('btn-save');
+        const testSoundBtn = document.getElementById('btn-test-sound');
+        const inputOffset = document.getElementById('input-offset');
+        const inputDuration = document.getElementById('input-duration');
+        const valOffset = document.getElementById('val-offset');
+        const valDuration = document.getElementById('val-duration');
+
+        // Game State
+        let state = 'idle';
+        let startTime = 0;
+        let timeoutIds = [];
+        let audioCtx = null;
+        let beepBuffer = null;
+
+        // Audio Settings (預設值)
+        let audioConfig = {
+            offset: 0.64,
+            duration: 0.8
+        };
+
+        // --- 1. 設定與儲存功能 ---
+        function loadSettings() {
+            const saved = localStorage.getItem('f1_audio_config');
+            if (saved) {
+                audioConfig = JSON.parse(saved);
+            }
+            inputOffset.value = audioConfig.offset;
+            inputDuration.value = audioConfig.duration;
+            updateLabels();
+        }
+
+        function saveSettings() {
+            audioConfig.offset = parseFloat(inputOffset.value);
+            audioConfig.duration = parseFloat(inputDuration.value);
+            localStorage.setItem('f1_audio_config', JSON.stringify(audioConfig));
+            updateLabels();
+        }
+
+        function updateLabels() {
+            valOffset.textContent = parseFloat(inputOffset.value).toFixed(2) + 's';
+            valDuration.textContent = parseFloat(inputDuration.value).toFixed(2) + 's';
+        }
+
+        inputOffset.addEventListener('input', () => { updateLabels(); audioConfig.offset = parseFloat(inputOffset.value); });
+        inputDuration.addEventListener('input', () => { updateLabels(); audioConfig.duration = parseFloat(inputDuration.value); });
+
+        openSettingsBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            settingsModal.classList.add('active');
+        });
+        closeSettingsBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            saveSettings();
+            settingsModal.classList.remove('active');
+        });
+        settingsModal.addEventListener('click', (e) => {
+            if (e.target === settingsModal) {
+                saveSettings();
+                settingsModal.classList.remove('active');
+            }
+        });
+
+
+        // --- 2. 音訊核心 ---
+        async function initAudio() {
+            if (audioCtx) return;
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            audioCtx = new AudioContext();
+
+            try {
+                const response = await fetch(AUDIO_FILENAME);
+                if (!response.ok) throw new Error("File not found");
+                const arrayBuffer = await response.arrayBuffer();
+                audioCtx.decodeAudioData(arrayBuffer, (decodedBuffer) => {
+                    beepBuffer = decodedBuffer;
+                    document.getElementById('audio-warning').style.display = 'none';
+                    statusEl.textContent = "Audio Ready - Tap to Start";
+                }, (e) => { throw new Error("Decode failed"); });
+            } catch (error) {
+                console.error(error);
+                document.getElementById('audio-warning').style.display = 'block';
+                statusEl.textContent = "Audio Error (check console)";
+            }
+        }
+
+        function playBeep() {
+            if (!audioCtx || !beepBuffer) return;
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+
+            const source = audioCtx.createBufferSource();
+            source.buffer = beepBuffer;
+            const gainNode = audioCtx.createGain();
+            source.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            source.start(0, audioConfig.offset, audioConfig.duration);
+        }
+
+        // ★ 新增：合成的失敗音效 (不需要外部檔案)
+        function playFailSound() {
+            if (!audioCtx) initAudio();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+
+            const t = audioCtx.currentTime;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+
+            // 使用鋸齒波製造粗糙的錯誤音
+            osc.type = 'sawtooth';
+            // 頻率下降效果 (類似「叭——嗚——」)
+            osc.frequency.setValueAtTime(150, t);
+            osc.frequency.linearRampToValueAtTime(80, t + 0.5);
+
+            gain.gain.setValueAtTime(0.5, t);
+            gain.gain.linearRampToValueAtTime(0, t + 0.5);
+
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start(t);
+            osc.stop(t + 0.5);
+        }
+
+        testSoundBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (!audioCtx) initAudio().then(playBeep);
+            else playBeep();
+        });
+
+
+        // --- 3. 遊戲邏輯 ---
+        function handleInput(e) {
+            if (e.target.closest('.settings-btn') || e.target.closest('.modal-content')) return;
+            if (e.type === 'touchstart') e.preventDefault();
+            if (!audioCtx) initAudio();
+
+            if (state === 'idle' || state === 'finished') {
+                startSequence();
+            } else if (state === 'sequence' || state === 'waiting') {
+                falseStart();
+            } else if (state === 'go') {
+                finishGame();
+            }
+        }
+
+        function startSequence() {
+            resetState();
+            state = 'sequence';
+            statusEl.textContent = "Sequence Started";
+
+            for (let i = 0; i < 5; i++) {
+                timeoutIds.push(setTimeout(() => {
+                    if (state !== 'sequence') return;
+                    lights[i].classList.add('on');
+                    playBeep();
+                }, (i + 1) * 1000));
+            }
+
+            const randomDelay = Math.random() * 2800 + 200;
+            timeoutIds.push(setTimeout(() => {
+                if (state !== 'sequence') return;
+                state = 'waiting';
+                timeoutIds.push(setTimeout(lightsOut, randomDelay));
+            }, 6000));
+        }
+
+        function lightsOut() {
+            state = 'go';
+            startTime = performance.now();
+            lights.forEach(l => l.classList.remove('on'));
+            statusEl.textContent = "GO!";
+            requestAnimationFrame(updateTimer);
+        }
+
+        function updateTimer() {
+            if (state !== 'go') return;
+            const diff = Math.floor(performance.now() - startTime);
+            timerEl.textContent = diff.toString().padStart(3, '0');
+            requestAnimationFrame(updateTimer);
+        }
+
+        function finishGame() {
+            const reactionTime = Math.floor(performance.now() - startTime);
+            state = 'finished';
+            body.className = 'state-success';
+            timerEl.textContent = reactionTime;
+
+            let comment = "Good Reaction";
+            if (reactionTime < 200) comment = "F1 DRIVER LEVEL! 🏆";
+            else if (reactionTime > 500) comment = "Wake up!";
+            statusEl.textContent = comment + " - Tap to retry";
+        }
+
+        function falseStart() {
+            state = 'finished';
+            // ★ 在這裡呼叫失敗音效
+            playFailSound();
+
+            timeoutIds.forEach(id => clearTimeout(id));
+            body.className = 'state-fail';
+            lights.forEach(l => l.classList.remove('on'));
+            timerEl.textContent = "JUMP";
+            statusEl.textContent = "JUMP START";
+        }
+
+        function resetState() {
+            state = 'idle';
+            timeoutIds.forEach(id => clearTimeout(id));
+            timeoutIds = [];
+            lights.forEach(l => l.classList.remove('on'));
+            body.className = '';
+            timerEl.textContent = "000";
+            statusEl.textContent = "";
+        }
+
+        // 初始化
+        loadSettings();
+        document.addEventListener('touchstart', handleInput, { passive: false });
+        document.addEventListener('mousedown', handleInput);
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space' || e.key === 'Enter') handleInput(e);
+        });
+
+    </script>
+</body>
+
+</html>
