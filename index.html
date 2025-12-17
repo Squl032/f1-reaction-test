@@ -55,7 +55,7 @@
         /* 左上角齒輪按鈕 */
         .settings-btn {
             position: absolute;
-            top: 20px;
+            top: calc(20px + env(safe-area-inset-top));
             left: 20px;
             z-index: 100;
             background: rgba(255, 255, 255, 0.1);
@@ -192,7 +192,7 @@
         /* 遊戲介面 */
         .header {
             position: absolute;
-            top: 20px;
+            top: calc(20px + env(safe-area-inset-top));
             font-size: 0.9rem;
             color: var(--text-sub);
             letter-spacing: 1px;
