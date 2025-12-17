@@ -123,7 +123,6 @@
         }
         .btn-share:active { transform: scale(0.95); box-shadow: 0 5px 10px rgba(0,0,0,0.2); }
 
-        /* Modal Styles */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(10px); z-index: 200; display: flex; justify-content: center; align-items: center; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
         .modal-overlay.active { opacity: 1; pointer-events: auto; }
         .modal-content { background: var(--panel-bg); padding: 40px; border-radius: 20px; width: 90%; max-width: 400px; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 20px 50px rgba(0,0,0,0.5); text-align: center; }
@@ -205,7 +204,7 @@
             <p>Long press to save / 長按儲存</p>
             <img id="result-img" src="" alt="Score Card">
             <div class="btn-row">
-                <button class="btn btn-save" onclick="document.getElementById('result-modal').classList.remove('active')">Close</button>
+                <button class="btn btn-save" id="close-result-btn">Close</button>
             </div>
         </div>
     </div>
@@ -233,7 +232,7 @@
 
     <div class="footer">
         <div id="audio-warning">⚠️ No f1-sound.mp3 found</div>
-        <div>v2.3 Pro • Config via Bottom Right</div>
+        <div>v2.4 Pro • Config via Bottom Right</div>
     </div>
 
     <canvas id="shareCanvas" width="600" height="400" style="display:none;"></canvas>
@@ -258,6 +257,7 @@
         
         const openSettingsBtn = document.getElementById('open-settings');
         const closeSettingsBtn = document.getElementById('btn-save');
+        const closeResultBtn = document.getElementById('close-result-btn');
         const testSoundBtn = document.getElementById('btn-test-sound');
         const inputOffset = document.getElementById('input-offset');
         const inputDuration = document.getElementById('input-duration');
@@ -275,33 +275,19 @@
 
         let config = { offset: 0.64, duration: 0.8, theme: 'default' };
 
-        const THEME_COLORS = {
-            'default': '#0b0c10',
-            'ferrari': '#1a0000',
-            'redbull': '#000c20',
-            'mclaren': '#1a0d00',
-            'mercedes': '#0e1111'
-        };
-        const STATE_COLORS = {
-            'success': '#003311',
-            'fail': '#3a0000',
-            'slow': '#553300'
-        };
+        const THEME_COLORS = { 'default': '#0b0c10', 'ferrari': '#1a0000', 'redbull': '#000c20', 'mclaren': '#1a0d00', 'mercedes': '#0e1111' };
+        const STATE_COLORS = { 'success': '#003311', 'fail': '#3a0000', 'slow': '#553300' };
 
-        function setBrowserThemeColor(color) {
-            if (metaThemeColor) metaThemeColor.setAttribute('content', color);
-        }
+        function setBrowserThemeColor(color) { if (metaThemeColor) metaThemeColor.setAttribute('content', color); }
 
         function loadSettings() {
             const saved = localStorage.getItem('f1_config_v3');
             if (saved) config = { ...config, ...JSON.parse(saved) };
-            
             inputOffset.value = config.offset;
             inputDuration.value = config.duration;
             selectTheme.value = config.theme;
             applyTheme(config.theme);
             updateLabels();
-            
             const savedPB = localStorage.getItem('f1_pb');
             if(savedPB) personalBest = parseInt(savedPB);
             updateStatsUI();
@@ -326,10 +312,18 @@
 
         function updateLabels() { valOffset.textContent = parseFloat(inputOffset.value).toFixed(2) + 's'; valDuration.textContent = parseFloat(inputDuration.value).toFixed(2) + 's'; }
 
-        inputOffset.addEventListener('input', () => { updateLabels(); config.offset = parseFloat(inputOffset.value); });
-        inputDuration.addEventListener('input', () => { updateLabels(); config.duration = parseFloat(inputDuration.value); });
+        // Event Listeners with Stop Propagation to prevent game start
+        inputOffset.addEventListener('input', (e) => { e.stopPropagation(); updateLabels(); config.offset = parseFloat(inputOffset.value); });
+        inputDuration.addEventListener('input', (e) => { e.stopPropagation(); updateLabels(); config.duration = parseFloat(inputDuration.value); });
+        selectTheme.addEventListener('change', (e) => { e.stopPropagation(); }); 
+        
         openSettingsBtn.addEventListener('click', (e) => { e.stopPropagation(); settingsModal.classList.add('active'); });
         closeSettingsBtn.addEventListener('click', (e) => { e.stopPropagation(); saveSettings(); settingsModal.classList.remove('active'); });
+        closeResultBtn.addEventListener('click', (e) => { e.stopPropagation(); resultModal.classList.remove('active'); });
+        
+        // Prevent clicks inside modals from triggering game
+        settingsModal.addEventListener('click', (e) => { e.stopPropagation(); });
+        resultModal.addEventListener('click', (e) => { e.stopPropagation(); });
 
         async function initAudio() {
             if (audioCtx) return;
@@ -389,7 +383,10 @@
         }
 
         function handleInput(e) {
+            // ★ Critical Fix: Prevent game start if modal is open ★
+            if (settingsModal.classList.contains('active') || resultModal.classList.contains('active')) return;
             if (e.target.closest('.settings-btn') || e.target.closest('.modal-content') || e.target.closest('.btn-share')) return;
+            
             if (e.type === 'touchstart') e.preventDefault();
             if (!audioCtx) initAudio();
 
@@ -406,7 +403,6 @@
             resetState();
             state = 'sequence';
             statusEl.textContent = "SEQUENCE START";
-            
             for (let i = 0; i < 5; i++) {
                 timeoutIds.push(setTimeout(() => {
                     if (state !== 'sequence') return;
@@ -415,7 +411,6 @@
                     triggerHaptic('tick'); 
                 }, (i + 1) * 1000));
             }
-
             const randomDelay = Math.random() * 2800 + 200; 
             timeoutIds.push(setTimeout(() => {
                 if (state !== 'sequence') return;
@@ -477,16 +472,12 @@
             state = 'finished';
             playFailSound();
             timeoutIds.forEach(id => clearTimeout(id));
-            
             body.className = 'state-fail'; html.className = 'state-fail';
             setBrowserThemeColor(STATE_COLORS['fail']); 
-
             lights.forEach(l => l.classList.remove('on'));
-            
             timerEl.classList.add('text-mode'); 
             timerEl.textContent = "JUMP"; 
             statusEl.textContent = "FALSE START"; 
-            
             triggerHaptic('fail');
             shareBtn.style.display = 'none'; 
         }
@@ -496,14 +487,11 @@
             timeoutIds.forEach(id => clearTimeout(id));
             timeoutIds = [];
             lights.forEach(l => l.classList.remove('on'));
-            
             body.className = ''; html.className = '';
             const themeHex = THEME_COLORS[config.theme] || THEME_COLORS['default'];
             setBrowserThemeColor(themeHex);
-
             applyTheme(config.theme); 
             body.classList.remove('shake-effect');
-            
             timerEl.classList.remove('text-mode'); 
             timerEl.textContent = "000";
             statusEl.textContent = "";
@@ -533,7 +521,6 @@
             statsBox.classList.add('visible');
         }
 
-        // ★ 重點修正：iOS 系統分享整合 ★
         shareBtn.addEventListener('click', async (e) => {
             e.stopPropagation();
             shareBtn.textContent = "Generating...";
@@ -549,7 +536,6 @@
             else if (body.classList.contains('state-slow')) bgColor = '#553300';
             else if (body.classList.contains('state-fail')) bgColor = '#3a0000';
 
-            // Draw Canvas Content (Same as before)
             ctx.fillStyle = bgColor; ctx.fillRect(0, 0, 600, 400);
             ctx.strokeStyle = 'rgba(255,255,255,0.1)'; ctx.lineWidth = 2;
             ctx.beginPath(); ctx.moveTo(20, 20); ctx.lineTo(580, 20); ctx.lineTo(580, 380); ctx.lineTo(20, 380); ctx.closePath(); ctx.stroke();
@@ -569,13 +555,13 @@
             ctx.font = '14px Arial'; ctx.fillStyle = 'rgba(255,255,255,0.4)'; 
             ctx.fillText(GITHUB_URL, 300, 370);
             
-            // Logic for Sharing
+            const dataURL = canvas.toDataURL('image/png');
+            
             canvas.toBlob(async (blob) => {
                 if (!blob) return;
                 
-                // 1. 嘗試使用 iOS / Android 系統分享 (Web Share API Level 2)
+                // 1. Try Native Share
                 const file = new File([blob], 'f1-result.png', { type: 'image/png' });
-                
                 if (navigator.canShare && navigator.canShare({ files: [file] })) {
                     try {
                         await navigator.share({
@@ -583,30 +569,29 @@
                             title: 'F1 Reaction Result',
                             text: `My F1 reaction time: ${timerEl.textContent}ms`
                         });
-                        shareBtn.textContent = "SHARED";
-                        setTimeout(() => shareBtn.textContent = "SHARE RESULT", 3000);
-                        return; // 成功喚起系統分享，結束
+                        shareBtn.textContent = "SHARE RESULT"; // Reset text
+                        return; // Success, exit
                     } catch (err) {
-                        console.log("Share API cancelled or failed, falling back.");
+                        // User cancelled share, DO NOT show modal, just reset
+                        console.log("Share cancelled");
+                        shareBtn.textContent = "SHARE RESULT";
+                        return; 
                     }
                 }
 
-                // 2. 如果系統分享失敗（或在電腦版），嘗試寫入剪貼簿
+                // 2. Fallback to Clipboard (Desktop)
                 try {
                     const item = new ClipboardItem({ 'image/png': blob });
                     await navigator.clipboard.write([item]);
                     shareBtn.innerHTML = "✅ COPIED";
+                    setTimeout(() => shareBtn.textContent = "SHARE RESULT", 3000);
                 } catch (err) {
-                    console.log("Clipboard failed, showing modal.");
-                    // 3. 如果都失敗，顯示圖片彈窗 (保底)
-                    resultImg.src = canvas.toDataURL('image/png');
+                    // 3. Last Resort: Modal (Old Browsers)
+                    console.log("Fallback to modal");
+                    resultImg.src = dataURL;
                     resultModal.classList.add('active');
                     shareBtn.textContent = "SHARE RESULT";
                 }
-                
-                setTimeout(() => { 
-                    if(shareBtn.textContent === "✅ COPIED") shareBtn.textContent = "SHARE RESULT"; 
-                }, 3000);
             });
         });
 
