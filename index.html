@@ -5,7 +5,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>F1 Reaction Test Pro</title>
-    <meta name="theme-color" content="#000000">
+    <meta name="theme-color" content="#121212">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Russo+One&family=Titillium+Web:wght@400;600;700&display=swap"
+        rel="stylesheet">
 
     <link rel="icon"
         href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏎️</text></svg>">
@@ -16,44 +21,51 @@
 
     <style>
         :root {
-            --bg-color: #121212;
-            --panel-bg: #1e1e1e;
-            --light-off: #2a2a2a;
+            --bg-color: #0b0c10;
+            --panel-bg: #1f2833;
+            --light-off: #222;
             --light-on: #ff0000;
             --text-main: #ffffff;
-            --text-sub: #888888;
-            --accent: #e10600;
-            --border-color: #333;
+            --text-sub: #c5c6c7;
+            --accent: #66fcf1;
+            /* Cyber Blue accent */
+            --danger: #ff003c;
+            --border-color: #45a29e;
+
+            /* 字體設定 */
+            --font-display: 'Russo One', sans-serif;
+            /* 數字、標題 */
+            --font-ui: 'Titillium Web', sans-serif;
+            /* 一般文字 */
         }
 
-        /* 主題配色保持不變 */
+        /* 主題配色 */
         [data-theme="ferrari"] {
             --bg-color: #1a0000;
-            --panel-bg: #2d0000;
-            --accent: #ff2800;
-            --border-color: #500;
+            --panel-bg: #3d0000;
+            --accent: #ffff00;
+            --danger: #ff2800;
         }
 
         [data-theme="redbull"] {
             --bg-color: #000c20;
             --panel-bg: #001a3d;
             --accent: #fcd700;
-            --text-sub: #8faabf;
-            --border-color: #102542;
+            --danger: #ff003c;
         }
 
         [data-theme="mclaren"] {
             --bg-color: #1a0d00;
             --panel-bg: #2d1800;
-            --accent: #ff8000;
-            --border-color: #520;
+            --accent: #66fcf1;
+            --danger: #ff8000;
         }
 
         [data-theme="mercedes"] {
             --bg-color: #0e1111;
             --panel-bg: #1c2222;
             --accent: #00d2be;
-            --border-color: #2a3333;
+            --danger: #ff003c;
         }
 
         * {
@@ -64,7 +76,7 @@
         body {
             background-color: var(--bg-color);
             color: var(--text-main);
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            font-family: var(--font-ui);
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -75,44 +87,44 @@
             touch-action: manipulation;
             cursor: pointer;
             user-select: none;
-            transition: background-color 0.3s, color 0.3s;
+            transition: background-color 0.4s ease;
         }
 
-        /* ★ UI 修正：大幅增加頂部距離，避開動態島 ★ */
+        /* 頂部標題 (移到更安全的位置) */
         .header {
             position: absolute;
-            /* 原本 20px 改為 60px，確保避開動態島 */
-            top: calc(60px + env(safe-area-inset-top));
-            font-size: 0.9rem;
+            top: calc(50px + env(safe-area-inset-top));
+            font-family: var(--font-display);
+            font-size: 0.8rem;
             color: var(--text-sub);
-            letter-spacing: 1px;
+            letter-spacing: 2px;
             text-transform: uppercase;
             pointer-events: none;
-            width: 100%;
-            text-align: center;
+            opacity: 0.6;
         }
 
+        /* 設定按鈕 (移到右下角，完全避開動態島) */
         .settings-btn {
             position: absolute;
-            /* 同樣下移 */
-            top: calc(60px + env(safe-area-inset-top));
-            left: 30px;
-            /* 稍微往右移一點 */
+            bottom: 30px;
+            right: 30px;
             z-index: 100;
             background: rgba(255, 255, 255, 0.1);
-            border: none;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
             border-radius: 50%;
-            width: 44px;
-            height: 44px;
+            width: 50px;
+            height: 50px;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            transition: background 0.2s;
+            transition: all 0.2s;
         }
 
         .settings-btn:hover {
             background: rgba(255, 255, 255, 0.2);
+            transform: scale(1.1);
         }
 
         .settings-btn svg {
@@ -121,7 +133,287 @@
             fill: var(--text-main);
         }
 
-        /* 其餘 CSS 保持不變 */
+        /* 燈號架構 (更立體) */
+        .gantry {
+            background: linear-gradient(180deg, #111 0%, #000 100%);
+            padding: 30px 50px;
+            border-radius: 30px;
+            display: flex;
+            gap: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8), inset 0 1px 2px rgba(255, 255, 255, 0.2);
+            border: 1px solid #333;
+            margin-bottom: 50px;
+            position: relative;
+        }
+
+        /* 燈號架上方的遮光罩效果 */
+        .gantry::before {
+            content: '';
+            position: absolute;
+            top: -10px;
+            left: 10px;
+            right: 10px;
+            height: 15px;
+            background: #111;
+            border-radius: 10px 10px 0 0;
+            z-index: -1;
+        }
+
+        .light {
+            width: 60px;
+            height: 60px;
+            background-color: var(--light-off);
+            border-radius: 50%;
+            border: 6px solid #000;
+            position: relative;
+            box-shadow: inset 0 5px 10px rgba(0, 0, 0, 1);
+            transition: transform 0.1s;
+        }
+
+        .light.on {
+            background-color: var(--light-on);
+            box-shadow: 0 0 30px var(--light-on), inset 0 2px 5px rgba(255, 255, 255, 0.5);
+            transform: scale(1.05);
+            border-color: #300;
+        }
+
+        /* 玻璃質感反光 */
+        .light::after {
+            content: '';
+            position: absolute;
+            top: 15%;
+            left: 15%;
+            width: 35%;
+            height: 25%;
+            border-radius: 50%;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.8) 0%, rgba(255, 255, 255, 0) 70%);
+            opacity: 0.15;
+            pointer-events: none;
+        }
+
+        .light.on::after {
+            opacity: 0.8;
+        }
+
+        /* 計時器與狀態文字 */
+        .timer-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 250px;
+        }
+
+        #timer {
+            font-family: var(--font-display);
+            font-size: 7rem;
+            font-weight: 400;
+            letter-spacing: 2px;
+            line-height: 1;
+            font-variant-numeric: tabular-nums;
+            text-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        #status {
+            margin-top: 20px;
+            font-family: var(--font-ui);
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--text-sub);
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            text-align: center;
+        }
+
+        /* 數據與按鈕 */
+        .stats-box {
+            display: flex;
+            gap: 20px;
+            margin-top: 30px;
+            font-family: var(--font-ui);
+            font-size: 1rem;
+            color: var(--text-sub);
+            opacity: 0;
+            transition: opacity 0.5s;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 10px 20px;
+            border-radius: 50px;
+        }
+
+        .stats-box.visible {
+            opacity: 1;
+        }
+
+        .stat-item b {
+            color: var(--text-main);
+            font-size: 1.2rem;
+            margin-left: 5px;
+            font-family: var(--font-display);
+        }
+
+        .btn-share {
+            margin-top: 30px;
+            background: var(--text-main);
+            color: var(--bg-color);
+            border: none;
+            padding: 12px 25px;
+            border-radius: 50px;
+            font-family: var(--font-ui);
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            display: none;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+            transition: transform 0.1s, box-shadow 0.1s;
+            z-index: 50;
+        }
+
+        .btn-share:active {
+            transform: scale(0.95);
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        /* 設定面板 Modal (美化版) */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(10px);
+            z-index: 200;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-content {
+            background: var(--panel-bg);
+            padding: 40px;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 400px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-header {
+            font-family: var(--font-display);
+            font-size: 1.5rem;
+            margin-bottom: 25px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 15px;
+            color: var(--text-main);
+            letter-spacing: 1px;
+        }
+
+        .control-group {
+            margin-bottom: 25px;
+        }
+
+        .control-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-size: 0.9rem;
+            color: var(--text-sub);
+            letter-spacing: 1px;
+        }
+
+        .control-value {
+            color: var(--accent);
+            font-family: var(--font-display);
+        }
+
+        select {
+            width: 100%;
+            padding: 12px;
+            border-radius: 10px;
+            background: rgba(0, 0, 0, 0.3);
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            outline: none;
+            font-family: var(--font-ui);
+            cursor: pointer;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 22px;
+            height: 22px;
+            background: var(--text-main);
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid var(--bg-color);
+        }
+
+        .btn-row {
+            display: flex;
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 15px;
+            border: none;
+            border-radius: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 1rem;
+            font-family: var(--font-ui);
+            transition: 0.2s;
+        }
+
+        .btn-test {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+        }
+
+        .btn-test:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-save {
+            background: var(--text-main);
+            color: var(--bg-color);
+        }
+
+        .btn-save:hover {
+            background: #ddd;
+        }
+
+        /* 狀態背景顏色與動畫 */
+        body.state-fail {
+            background-color: #3a0000 !important;
+        }
+
+        body.state-success {
+            background-color: #003311 !important;
+        }
+
+        body.state-slow {
+            background-color: #553300 !important;
+        }
+
         @keyframes shake {
             0% {
                 transform: translate(1px, 1px) rotate(0deg);
@@ -172,273 +464,38 @@
             animation: shake 0.4s cubic-bezier(.36, .07, .19, .97) both;
         }
 
-        .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.85);
-            backdrop-filter: blur(5px);
-            z-index: 200;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.2s;
-        }
-
-        .modal-overlay.active {
-            opacity: 1;
-            pointer-events: auto;
-        }
-
-        .modal-content {
-            background: var(--panel-bg);
-            padding: 30px;
-            border-radius: 15px;
-            width: 90%;
-            max-width: 400px;
-            border: 1px solid var(--border-color);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-        }
-
-        .modal-header {
-            font-size: 1.2rem;
-            font-weight: bold;
-            margin-bottom: 20px;
-            border-bottom: 1px solid var(--border-color);
-            padding-bottom: 10px;
-            color: var(--text-main);
-        }
-
-        .control-group {
-            margin-bottom: 20px;
-        }
-
-        .control-label {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 8px;
-            font-size: 0.9rem;
-            color: var(--text-sub);
-        }
-
-        .control-value {
-            color: var(--accent);
-            font-weight: bold;
-            font-family: monospace;
-        }
-
-        select {
-            width: 100%;
-            padding: 8px;
-            border-radius: 5px;
-            background: #000;
-            color: #fff;
-            border: 1px solid #444;
-            outline: none;
-        }
-
-        input[type="range"] {
-            width: 100%;
-            height: 6px;
-            background: #444;
-            border-radius: 3px;
-            outline: none;
-            -webkit-appearance: none;
-        }
-
-        input[type="range"]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            width: 20px;
-            height: 20px;
-            background: var(--text-main);
-            border-radius: 50%;
-            cursor: pointer;
-        }
-
-        .btn-row {
-            display: flex;
-            gap: 10px;
-            margin-top: 10px;
-        }
-
-        .btn {
-            flex: 1;
-            padding: 12px;
-            border: none;
-            border-radius: 8px;
-            font-weight: bold;
-            cursor: pointer;
-            font-size: 1rem;
-        }
-
-        .btn-test {
-            background: #333;
-            color: #fff;
-            border: 1px solid #555;
-        }
-
-        .btn-save {
-            background: var(--accent);
-            color: #fff;
-            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-        }
-
-        .gantry {
-            background: #000;
-            padding: 25px 40px;
-            border-radius: 20px;
-            display: flex;
-            gap: 15px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
-            border-bottom: 4px solid #333;
-            margin-bottom: 40px;
-            transition: transform 0.1s;
-        }
-
-        .light {
-            width: 60px;
-            height: 60px;
-            background-color: var(--light-off);
-            border-radius: 50%;
-            border: 4px solid #111;
-            transition: transform 0.05s;
-            position: relative;
-        }
-
-        .light.on {
-            background-color: var(--light-on);
-            box-shadow: 0 0 30px #ff0000;
-            transform: scale(1.05);
-        }
-
-        .light::after {
-            content: '';
-            position: absolute;
-            top: 15%;
-            left: 15%;
-            width: 30%;
-            height: 25%;
-            border-radius: 50%;
-            background: linear-gradient(135deg, rgba(255, 255, 255, 0.7) 0%, rgba(255, 255, 255, 0) 60%);
-            opacity: 0.2;
-        }
-
-        .light.on::after {
-            opacity: 0.6;
-        }
-
-        .timer-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 200px;
-        }
-
-        #timer {
-            font-size: 6rem;
-            font-weight: 700;
-            font-family: 'Courier New', monospace;
-            letter-spacing: -3px;
-            line-height: 1;
-        }
-
-        #status {
-            margin-top: 10px;
-            font-size: 1.2rem;
-            color: var(--text-sub);
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            text-align: center;
-        }
-
-        .stats-box {
-            display: flex;
-            gap: 15px;
-            margin-top: 20px;
-            font-family: 'Courier New', monospace;
-            font-size: 0.9rem;
-            color: var(--text-sub);
-            opacity: 0;
-            transition: opacity 0.5s;
-        }
-
-        .stats-box.visible {
-            opacity: 1;
-        }
-
-        .stat-item b {
-            color: var(--text-main);
-            font-size: 1.1rem;
-        }
-
-        .btn-share {
-            margin-top: 25px;
-            background: var(--text-main);
-            color: var(--bg-color);
-            border: none;
-            padding: 10px 20px;
-            border-radius: 30px;
-            font-weight: bold;
-            cursor: pointer;
-            display: none;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-            transition: transform 0.1s;
-            z-index: 50;
-        }
-
-        .btn-share:active {
-            transform: scale(0.95);
-        }
-
-        body.state-fail {
-            background-color: #4a1a1a !important;
-        }
-
-        body.state-success {
-            background-color: #1a4a2a !important;
-        }
-
-        body.state-slow {
-            background-color: #7a5901 !important;
-        }
-
         .footer {
             position: absolute;
             bottom: 30px;
             font-size: 0.8rem;
-            color: #444;
+            color: rgba(255, 255, 255, 0.3);
             text-align: center;
             width: 100%;
-            padding: 0 20px;
+            pointer-events: none;
         }
 
         #audio-warning {
-            color: #ffaa00;
+            color: var(--accent);
             display: none;
             margin-bottom: 5px;
         }
 
         @media (max-width: 600px) {
             .gantry {
-                padding: 20px;
+                padding: 20px 30px;
                 gap: 10px;
+                border-radius: 20px;
             }
 
             .light {
                 width: 45px;
                 height: 45px;
+                border-width: 4px;
             }
 
             #timer {
-                font-size: 5rem;
+                font-size: 5.5rem;
             }
-
-            /* header 已經在上面統一設定了，這裡不需要再覆蓋 */
         }
     </style>
 </head>
@@ -456,11 +513,11 @@
 
     <div class="modal-overlay" id="settings-modal">
         <div class="modal-content">
-            <div class="modal-header">Settings</div>
+            <div class="modal-header">System Config</div>
             <div class="control-group">
-                <div class="control-label"><span>Team Theme</span></div>
+                <div class="control-label"><span>Livery Theme</span></div>
                 <select id="select-theme">
-                    <option value="default">Default Dark</option>
+                    <option value="default">Stealth Dark</option>
                     <option value="ferrari">Scuderia Red</option>
                     <option value="redbull">Racing Blue</option>
                     <option value="mclaren">Papaya Orange</option>
@@ -478,8 +535,8 @@
                 <input type="range" id="input-duration" min="0.1" max="2" step="0.05" value="0.8">
             </div>
             <div class="btn-row">
-                <button class="btn btn-test" id="btn-test-sound">🎵 Test</button>
-                <button class="btn btn-save" id="btn-save">Save</button>
+                <button class="btn btn-test" id="btn-test-sound">Sound Check</button>
+                <button class="btn btn-save" id="btn-save">Confirm</button>
             </div>
         </div>
     </div>
@@ -494,20 +551,20 @@
 
     <div class="timer-container">
         <div id="timer">000</div>
-        <div id="status">Tap to Start</div>
+        <div id="status">TAP TO START</div>
 
         <div class="stats-box" id="stats-box">
-            <div class="stat-item">Ao5: <b id="val-ao5">---</b></div>
-            <div style="border-left: 1px solid #444;"></div>
-            <div class="stat-item">PB: <b id="val-pb">---</b></div>
+            <div class="stat-item">AO5 <b id="val-ao5">---</b></div>
+            <div style="width: 1px; background: rgba(255,255,255,0.2);"></div>
+            <div class="stat-item">PB <b id="val-pb">---</b></div>
         </div>
 
-        <button class="btn-share" id="btn-share">📷 Copy Score Card</button>
+        <button class="btn-share" id="btn-share">Share Telemetry</button>
     </div>
 
     <div class="footer">
         <div id="audio-warning">⚠️ No f1-sound.mp3 found</div>
-        <div>Tap anywhere • Config via Gear Icon</div>
+        <div>v2.0 Pro • Config via Bottom Right</div>
     </div>
 
     <canvas id="shareCanvas" width="600" height="400" style="display:none;"></canvas>
@@ -543,14 +600,17 @@
 
         let config = { offset: 0.64, duration: 0.8, theme: 'default' };
 
+        // --- Config ---
         function loadSettings() {
-            const saved = localStorage.getItem('f1_config_v2');
+            const saved = localStorage.getItem('f1_config_v3'); // v3 for safety
             if (saved) config = { ...config, ...JSON.parse(saved) };
+
             inputOffset.value = config.offset;
             inputDuration.value = config.duration;
             selectTheme.value = config.theme;
             applyTheme(config.theme);
             updateLabels();
+
             const savedPB = localStorage.getItem('f1_pb');
             if (savedPB) personalBest = parseInt(savedPB);
             updateStatsUI();
@@ -560,7 +620,7 @@
             config.offset = parseFloat(inputOffset.value);
             config.duration = parseFloat(inputDuration.value);
             config.theme = selectTheme.value;
-            localStorage.setItem('f1_config_v2', JSON.stringify(config));
+            localStorage.setItem('f1_config_v3', JSON.stringify(config));
             applyTheme(config.theme);
             updateLabels();
         }
@@ -570,10 +630,10 @@
 
         inputOffset.addEventListener('input', () => { updateLabels(); config.offset = parseFloat(inputOffset.value); });
         inputDuration.addEventListener('input', () => { updateLabels(); config.duration = parseFloat(inputDuration.value); });
-
         openSettingsBtn.addEventListener('click', (e) => { e.stopPropagation(); settingsModal.classList.add('active'); });
         closeSettingsBtn.addEventListener('click', (e) => { e.stopPropagation(); saveSettings(); settingsModal.classList.remove('active'); });
 
+        // --- Audio ---
         async function initAudio() {
             if (audioCtx) return;
             const AudioContext = window.AudioContext || window.webkitAudioContext;
@@ -585,12 +645,12 @@
                 audioCtx.decodeAudioData(arrayBuffer, (buffer) => {
                     beepBuffer = buffer;
                     document.getElementById('audio-warning').style.display = 'none';
-                    statusEl.textContent = "Audio Ready";
+                    statusEl.textContent = "SYSTEM READY";
                 });
             } catch (error) {
                 console.error(error);
                 document.getElementById('audio-warning').style.display = 'block';
-                statusEl.textContent = "Audio Error";
+                statusEl.textContent = "AUDIO ERROR";
             }
         }
 
@@ -624,15 +684,18 @@
 
         testSoundBtn.addEventListener('click', (e) => { e.stopPropagation(); if (!audioCtx) initAudio().then(playBeep); else playBeep(); });
 
-        // --- 震動封裝函式 (嘗試相容) ---
-        function triggerVibration(pattern) {
-            // Android Support
-            if (navigator.vibrate) {
-                navigator.vibrate(pattern);
-            }
-            // iOS 依然不支援震動，但保留此函式結構
+        // --- Haptics (Vibration) ---
+        function triggerHaptic(type) {
+            if (!navigator.vibrate) return;
+            // 亮燈震動 (短)
+            if (type === 'tick') navigator.vibrate(20);
+            // 成功震動 (三下)
+            if (type === 'success') navigator.vibrate([80, 50, 80, 50, 80]);
+            // 失敗震動 (長)
+            if (type === 'fail') navigator.vibrate(200);
         }
 
+        // --- Game Loop ---
         function handleInput(e) {
             if (e.target.closest('.settings-btn') || e.target.closest('.modal-content') || e.target.closest('.btn-share')) return;
             if (e.type === 'touchstart') e.preventDefault();
@@ -650,15 +713,14 @@
         function startSequence() {
             resetState();
             state = 'sequence';
-            statusEl.textContent = "Sequence Started";
+            statusEl.textContent = "SEQUENCE START";
 
             for (let i = 0; i < 5; i++) {
                 timeoutIds.push(setTimeout(() => {
                     if (state !== 'sequence') return;
                     lights[i].classList.add('on');
                     playBeep();
-                    // ★ 亮燈時：震動 50ms (Android Only)
-                    triggerVibration(50);
+                    triggerHaptic('tick'); // ★ 亮燈震一下
                 }, (i + 1) * 1000));
             }
 
@@ -693,8 +755,8 @@
                 playFailSound();
                 body.className = 'state-fail';
                 timerEl.textContent = reactionTime;
-                statusEl.textContent = "ANTICIPATED! (< 100ms)";
-                triggerVibration([50, 50, 50]); // 失敗震動
+                statusEl.textContent = "ANTICIPATED!";
+                triggerHaptic('fail');
                 shareBtn.style.display = 'none';
                 return;
             }
@@ -703,17 +765,14 @@
 
             if (reactionTime > 500) {
                 body.className = 'state-slow';
-                statusEl.textContent = "Too Slow... (> 500ms)";
-                triggerVibration(100); // 慢速只震一下
+                statusEl.textContent = "+0.500s (SLOW)";
+                triggerHaptic('fail');
             } else {
                 body.className = 'state-success';
-                statusEl.textContent = reactionTime < 200 ? "F1 DRIVER LEVEL! 🏆" : "Good Reaction";
+                statusEl.textContent = reactionTime < 200 ? "F1 DRIVER PACE" : "GOOD REACTION";
                 body.classList.add('shake-effect');
                 setTimeout(() => body.classList.remove('shake-effect'), 500);
-
-                // ★ 成功時：連續震動 3 次 (Android Only)
-                // 模式：[震, 停, 震, 停, 震]
-                triggerVibration([100, 50, 100, 50, 100]);
+                triggerHaptic('success'); // ★ 成功震三下
             }
 
             timerEl.textContent = reactionTime;
@@ -727,9 +786,9 @@
             timeoutIds.forEach(id => clearTimeout(id));
             body.className = 'state-fail';
             lights.forEach(l => l.classList.remove('on'));
-            timerEl.textContent = "JUMP";
-            statusEl.textContent = "JUMP START";
-            triggerVibration([100, 50, 100]);
+            timerEl.textContent = "JUMP START";
+            statusEl.textContent = "FALSE START";
+            triggerHaptic('fail');
             shareBtn.style.display = 'none';
         }
 
@@ -739,13 +798,14 @@
             timeoutIds = [];
             lights.forEach(l => l.classList.remove('on'));
             body.className = '';
-            applyTheme(config.theme); // 確保主題不被清除
+            applyTheme(config.theme);
             body.classList.remove('shake-effect');
             timerEl.textContent = "000";
             statusEl.textContent = "";
             shareBtn.style.display = 'none';
         }
 
+        // --- Stats & Share ---
         function updateStatsData(time) {
             if (!personalBest || time < personalBest) {
                 personalBest = time;
@@ -774,33 +834,50 @@
             shareBtn.textContent = "Generating...";
             const canvas = document.getElementById('shareCanvas');
             const ctx = canvas.getContext('2d');
-            const currentTime = parseInt(timerEl.textContent);
+
             let bgColor = getComputedStyle(body).getPropertyValue('--bg-color');
+            let accent = getComputedStyle(body).getPropertyValue('--text-main');
 
-            if (body.classList.contains('state-success')) bgColor = '#1a4a2a';
-            else if (body.classList.contains('state-slow')) bgColor = '#5e4300';
-            else if (body.classList.contains('state-fail')) bgColor = '#4a1a1a';
+            if (body.classList.contains('state-success')) bgColor = '#003311';
+            else if (body.classList.contains('state-slow')) bgColor = '#553300';
+            else if (body.classList.contains('state-fail')) bgColor = '#3a0000';
 
+            // Draw Background
             ctx.fillStyle = bgColor; ctx.fillRect(0, 0, 600, 400);
-            ctx.strokeStyle = 'rgba(255,255,255,0.2)'; ctx.lineWidth = 10; ctx.strokeRect(10, 10, 580, 380);
-            ctx.fillStyle = '#ffffff'; ctx.font = 'bold 30px Arial'; ctx.textAlign = 'center'; ctx.fillText('F1 REACTION TEST', 300, 60);
-            ctx.font = 'bold 120px Courier New'; ctx.fillStyle = '#ffffff'; ctx.fillText(timerEl.textContent + ' ms', 300, 200);
-            ctx.font = '24px Courier New'; ctx.fillStyle = 'rgba(255,255,255,0.8)';
+
+            // Draw Tech Overlay
+            ctx.strokeStyle = 'rgba(255,255,255,0.1)'; ctx.lineWidth = 2;
+            ctx.beginPath(); ctx.moveTo(20, 20); ctx.lineTo(580, 20); ctx.lineTo(580, 380); ctx.lineTo(20, 380); ctx.closePath(); ctx.stroke();
+
+            // Header
+            ctx.fillStyle = 'rgba(255,255,255,0.7)'; ctx.font = 'bold 24px Arial'; ctx.textAlign = 'center';
+            ctx.fillText('F1 REACTION TEST', 300, 70);
+
+            // Main Time
+            ctx.font = 'bold 130px sans-serif'; ctx.fillStyle = '#ffffff';
+            ctx.fillText(timerEl.textContent, 300, 210);
+            ctx.font = '20px sans-serif'; ctx.fillStyle = accent; ctx.fillText('MILLISECONDS', 300, 250);
+
+            // Stats
+            ctx.font = '24px monospace'; ctx.fillStyle = 'rgba(255,255,255,0.8)';
             const ao5 = document.getElementById('val-ao5').textContent;
             const pb = document.getElementById('val-pb').textContent;
-            ctx.fillText(`Ao5: ${ao5}ms   |   PB: ${pb}ms`, 300, 280);
-            ctx.font = '16px Arial'; ctx.fillStyle = 'rgba(255,255,255,0.5)'; ctx.fillText(GITHUB_URL, 300, 350);
+            ctx.fillText(`AO5: ${ao5}  |  PB: ${pb}`, 300, 320);
+
+            // Footer
+            ctx.font = '14px Arial'; ctx.fillStyle = 'rgba(255,255,255,0.4)';
+            ctx.fillText(GITHUB_URL, 300, 370);
 
             try {
                 canvas.toBlob(async (blob) => {
                     const item = new ClipboardItem({ 'image/png': blob });
                     await navigator.clipboard.write([item]);
-                    shareBtn.innerHTML = "✅ Image Copied!";
-                    setTimeout(() => shareBtn.innerHTML = "📷 Copy Score Card", 3000);
+                    shareBtn.innerHTML = "✅ COPIED";
+                    setTimeout(() => shareBtn.innerHTML = "SHARE TELEMETRY", 3000);
                 });
             } catch (err) {
-                shareBtn.textContent = "❌ Copy Failed";
-                alert("Please take a screenshot manually.");
+                shareBtn.textContent = "ERROR";
+                alert("Screenshot manually please.");
             }
         });
 
@@ -808,7 +885,6 @@
         document.addEventListener('touchstart', handleInput, { passive: false });
         document.addEventListener('mousedown', handleInput);
         document.addEventListener('keydown', (e) => { if (e.code === 'Space' || e.key === 'Enter') handleInput(e); });
-
     </script>
 </body>
 
