@@ -39,24 +39,15 @@
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
-        /* ★ 修正：讓 html 也繼承背景色，解決 iOS 橡皮筋特效露出的底色問題 ★ */
-        html {
-            background-color: var(--bg-color);
-            transition: background-color 0.4s ease;
-        }
-
+        html { background-color: var(--bg-color); transition: background-color 0.4s ease; }
         body {
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            font-family: var(--font-ui);
+            background-color: var(--bg-color); color: var(--text-main); font-family: var(--font-ui);
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             height: 100vh; margin: 0; overflow: hidden;
             touch-action: manipulation; cursor: pointer; user-select: none;
             transition: background-color 0.4s ease;
         }
 
-        /* 狀態顏色 (加上 !important 確保覆蓋) */
-        /* 同時我們會在 JS 裡同步修改 meta-theme-color */
         html.state-fail, body.state-fail { background-color: #3a0000 !important; }
         html.state-success, body.state-success { background-color: #003311 !important; }
         html.state-slow, body.state-slow { background-color: #553300 !important; }
@@ -237,12 +228,12 @@
             <div class="stat-item">PB <b id="val-pb">---</b></div>
         </div>
 
-        <button class="btn-share" id="btn-share">Share Telemetry</button>
+        <button class="btn-share" id="btn-share">SHARE RESULT</button>
     </div>
 
     <div class="footer">
         <div id="audio-warning">⚠️ No f1-sound.mp3 found</div>
-        <div>v2.2 Pro • Config via Bottom Right</div>
+        <div>v2.3 Pro • Config via Bottom Right</div>
     </div>
 
     <canvas id="shareCanvas" width="600" height="400" style="display:none;"></canvas>
@@ -255,8 +246,8 @@
         const timerEl = document.getElementById('timer');
         const statusEl = document.getElementById('status');
         const body = document.body;
-        const html = document.documentElement; // 取得 html 元素
-        const metaThemeColor = document.getElementById('meta-theme-color'); // 取得 meta tag
+        const html = document.documentElement;
+        const metaThemeColor = document.getElementById('meta-theme-color');
 
         const statsBox = document.getElementById('stats-box');
         const shareBtn = document.getElementById('btn-share');
@@ -284,7 +275,6 @@
 
         let config = { offset: 0.64, duration: 0.8, theme: 'default' };
 
-        // ★ 定義主題對應的 Hex 顏色，用於同步 Meta Tag ★
         const THEME_COLORS = {
             'default': '#0b0c10',
             'ferrari': '#1a0000',
@@ -298,7 +288,6 @@
             'slow': '#553300'
         };
 
-        // --- Helper: 設定瀏覽器邊框顏色 ---
         function setBrowserThemeColor(color) {
             if (metaThemeColor) metaThemeColor.setAttribute('content', color);
         }
@@ -329,7 +318,6 @@
 
         function applyTheme(themeName) { 
             body.setAttribute('data-theme', themeName);
-            // 當切換主題時，如果不是在遊戲結算狀態，立即更新邊框顏色
             if (state === 'idle' || state === 'sequence' || state === 'waiting') {
                 const hexColor = THEME_COLORS[themeName] || THEME_COLORS['default'];
                 setBrowserThemeColor(hexColor);
@@ -458,7 +446,7 @@
             if (reactionTime < 100) {
                 playFailSound();
                 body.className = 'state-fail'; html.className = 'state-fail';
-                setBrowserThemeColor(STATE_COLORS['fail']); // 更新邊框色
+                setBrowserThemeColor(STATE_COLORS['fail']); 
                 timerEl.textContent = reactionTime;
                 statusEl.textContent = "ANTICIPATED!";
                 triggerHaptic('fail');
@@ -468,12 +456,12 @@
 
             if (reactionTime > 500) {
                 body.className = 'state-slow'; html.className = 'state-slow';
-                setBrowserThemeColor(STATE_COLORS['slow']); // 更新邊框色
+                setBrowserThemeColor(STATE_COLORS['slow']); 
                 statusEl.textContent = "+0.500s (SLOW)";
                 triggerHaptic('fail');
             } else {
                 body.className = 'state-success'; html.className = 'state-success';
-                setBrowserThemeColor(STATE_COLORS['success']); // 更新邊框色
+                setBrowserThemeColor(STATE_COLORS['success']); 
                 statusEl.textContent = reactionTime < 200 ? "F1 DRIVER PACE" : "GOOD REACTION";
                 body.classList.add('shake-effect');
                 setTimeout(() => body.classList.remove('shake-effect'), 500);
@@ -491,7 +479,7 @@
             timeoutIds.forEach(id => clearTimeout(id));
             
             body.className = 'state-fail'; html.className = 'state-fail';
-            setBrowserThemeColor(STATE_COLORS['fail']); // 更新邊框色
+            setBrowserThemeColor(STATE_COLORS['fail']); 
 
             lights.forEach(l => l.classList.remove('on'));
             
@@ -509,7 +497,6 @@
             timeoutIds = [];
             lights.forEach(l => l.classList.remove('on'));
             
-            // ★ 重置時：清除 CSS class，並將 meta color 恢復成主題色 ★
             body.className = ''; html.className = '';
             const themeHex = THEME_COLORS[config.theme] || THEME_COLORS['default'];
             setBrowserThemeColor(themeHex);
@@ -546,6 +533,7 @@
             statsBox.classList.add('visible');
         }
 
+        // ★ 重點修正：iOS 系統分享整合 ★
         shareBtn.addEventListener('click', async (e) => {
             e.stopPropagation();
             shareBtn.textContent = "Generating...";
@@ -561,6 +549,7 @@
             else if (body.classList.contains('state-slow')) bgColor = '#553300';
             else if (body.classList.contains('state-fail')) bgColor = '#3a0000';
 
+            // Draw Canvas Content (Same as before)
             ctx.fillStyle = bgColor; ctx.fillRect(0, 0, 600, 400);
             ctx.strokeStyle = 'rgba(255,255,255,0.1)'; ctx.lineWidth = 2;
             ctx.beginPath(); ctx.moveTo(20, 20); ctx.lineTo(580, 20); ctx.lineTo(580, 380); ctx.lineTo(20, 380); ctx.closePath(); ctx.stroke();
@@ -580,21 +569,45 @@
             ctx.font = '14px Arial'; ctx.fillStyle = 'rgba(255,255,255,0.4)'; 
             ctx.fillText(GITHUB_URL, 300, 370);
             
-            const dataURL = canvas.toDataURL('image/png');
-            try {
-                canvas.toBlob(async (blob) => {
-                    if (!blob) throw new Error("Blob failed");
+            // Logic for Sharing
+            canvas.toBlob(async (blob) => {
+                if (!blob) return;
+                
+                // 1. 嘗試使用 iOS / Android 系統分享 (Web Share API Level 2)
+                const file = new File([blob], 'f1-result.png', { type: 'image/png' });
+                
+                if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                    try {
+                        await navigator.share({
+                            files: [file],
+                            title: 'F1 Reaction Result',
+                            text: `My F1 reaction time: ${timerEl.textContent}ms`
+                        });
+                        shareBtn.textContent = "SHARED";
+                        setTimeout(() => shareBtn.textContent = "SHARE RESULT", 3000);
+                        return; // 成功喚起系統分享，結束
+                    } catch (err) {
+                        console.log("Share API cancelled or failed, falling back.");
+                    }
+                }
+
+                // 2. 如果系統分享失敗（或在電腦版），嘗試寫入剪貼簿
+                try {
                     const item = new ClipboardItem({ 'image/png': blob });
                     await navigator.clipboard.write([item]);
                     shareBtn.innerHTML = "✅ COPIED";
-                    setTimeout(() => shareBtn.innerHTML = "SHARE TELEMETRY", 3000);
-                });
-            } catch (err) {
-                console.log("Clipboard write failed, showing modal instead.");
-                resultImg.src = dataURL;
-                resultModal.classList.add('active');
-                shareBtn.textContent = "SHARE TELEMETRY";
-            }
+                } catch (err) {
+                    console.log("Clipboard failed, showing modal.");
+                    // 3. 如果都失敗，顯示圖片彈窗 (保底)
+                    resultImg.src = canvas.toDataURL('image/png');
+                    resultModal.classList.add('active');
+                    shareBtn.textContent = "SHARE RESULT";
+                }
+                
+                setTimeout(() => { 
+                    if(shareBtn.textContent === "✅ COPIED") shareBtn.textContent = "SHARE RESULT"; 
+                }, 3000);
+            });
         });
 
         loadSettings();
