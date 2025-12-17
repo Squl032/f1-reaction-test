@@ -232,10 +232,10 @@
 
     <div class="footer">
         <div id="audio-warning">⚠️ No f1-sound.mp3 found</div>
-        <div>v2.5 Pro • Config via Bottom Right</div>
+        <div>v2.6 Pro • Config via Bottom Right</div>
     </div>
 
-    <canvas id="shareCanvas" width="600" height="400" style="display:none;"></canvas>
+    <canvas id="shareCanvas" width="1200" height="800" style="display:none;"></canvas>
 
     <script>
         const AUDIO_FILENAME = 'f1-sound.mp3';
@@ -312,7 +312,6 @@
 
         function updateLabels() { valOffset.textContent = parseFloat(inputOffset.value).toFixed(2) + 's'; valDuration.textContent = parseFloat(inputDuration.value).toFixed(2) + 's'; }
 
-        // Event Listeners with Stop Propagation
         inputOffset.addEventListener('input', (e) => { e.stopPropagation(); updateLabels(); config.offset = parseFloat(inputOffset.value); });
         inputDuration.addEventListener('input', (e) => { e.stopPropagation(); updateLabels(); config.duration = parseFloat(inputDuration.value); });
         selectTheme.addEventListener('change', (e) => { e.stopPropagation(); }); 
@@ -519,7 +518,6 @@
             statsBox.classList.add('visible');
         }
 
-        // ★ 核心修改：移除 text 屬性，強制純圖片分享 ★
         shareBtn.addEventListener('click', async (e) => {
             e.stopPropagation();
             shareBtn.textContent = "Generating...";
@@ -528,6 +526,9 @@
             const canvas = document.getElementById('shareCanvas');
             const ctx = canvas.getContext('2d');
             
+            // ★ 高解析度繪圖 (Scale: 2x) ★
+            // 因為 Canvas 尺寸是 1200x800，所以座標都要 x2
+            
             let bgColor = getComputedStyle(body).getPropertyValue('--bg-color');
             let accent = getComputedStyle(body).getPropertyValue('--text-main');
             
@@ -535,57 +536,55 @@
             else if (body.classList.contains('state-slow')) bgColor = '#553300';
             else if (body.classList.contains('state-fail')) bgColor = '#3a0000';
 
-            ctx.fillStyle = bgColor; ctx.fillRect(0, 0, 600, 400);
-            ctx.strokeStyle = 'rgba(255,255,255,0.1)'; ctx.lineWidth = 2;
-            ctx.beginPath(); ctx.moveTo(20, 20); ctx.lineTo(580, 20); ctx.lineTo(580, 380); ctx.lineTo(20, 380); ctx.closePath(); ctx.stroke();
+            ctx.fillStyle = bgColor; ctx.fillRect(0, 0, 1200, 800);
             
-            ctx.fillStyle = 'rgba(255,255,255,0.7)'; ctx.font = 'bold 24px "Russo One", sans-serif'; ctx.textAlign = 'center'; 
-            ctx.fillText('F1 REACTION TEST', 300, 70);
+            ctx.strokeStyle = 'rgba(255,255,255,0.1)'; ctx.lineWidth = 4; // 線條加粗
+            ctx.beginPath(); ctx.moveTo(40, 40); ctx.lineTo(1160, 40); ctx.lineTo(1160, 760); ctx.lineTo(40, 760); ctx.closePath(); ctx.stroke();
             
-            ctx.font = 'bold 130px "Russo One", sans-serif'; ctx.fillStyle = '#ffffff'; 
-            ctx.fillText(timerEl.textContent, 300, 210);
-            ctx.font = '20px "Titillium Web", sans-serif'; ctx.fillStyle = accent; ctx.fillText('MILLISECONDS', 300, 250);
+            ctx.fillStyle = 'rgba(255,255,255,0.7)'; ctx.font = 'bold 48px "Russo One", sans-serif'; ctx.textAlign = 'center'; 
+            ctx.fillText('F1 REACTION TEST', 600, 140);
             
-            ctx.font = '24px monospace'; ctx.fillStyle = 'rgba(255,255,255,0.8)';
+            ctx.font = 'bold 260px "Russo One", sans-serif'; ctx.fillStyle = '#ffffff'; 
+            ctx.fillText(timerEl.textContent, 600, 420);
+            
+            ctx.font = '40px "Titillium Web", sans-serif'; ctx.fillStyle = accent; ctx.fillText('MILLISECONDS', 600, 500);
+            
+            ctx.font = '48px monospace'; ctx.fillStyle = 'rgba(255,255,255,0.8)';
             const ao5 = document.getElementById('val-ao5').textContent;
             const pb = document.getElementById('val-pb').textContent;
-            ctx.fillText(`AO5: ${ao5}  |  PB: ${pb}`, 300, 320);
+            ctx.fillText(`AO5: ${ao5}  |  PB: ${pb}`, 600, 640);
             
-            ctx.font = '14px Arial'; ctx.fillStyle = 'rgba(255,255,255,0.4)'; 
-            ctx.fillText(GITHUB_URL, 300, 370);
+            ctx.font = '28px Arial'; ctx.fillStyle = 'rgba(255,255,255,0.4)'; 
+            ctx.fillText(GITHUB_URL, 600, 740);
             
             const dataURL = canvas.toDataURL('image/png');
             
             canvas.toBlob(async (blob) => {
                 if (!blob) return;
                 
-                // ★ 1. 優先嘗試系統分享 (純圖片，移除文字避免衝突) ★
                 const file = new File([blob], `f1-score-${Date.now()}.png`, { type: 'image/png' });
                 
                 if (navigator.canShare && navigator.canShare({ files: [file] })) {
                     try {
                         await navigator.share({
                             files: [file]
-                            // 注意：這裡故意不放 text 和 title，確保 Discord 識別為檔案上傳
                         });
                         shareBtn.textContent = "SHARED";
                         setTimeout(() => shareBtn.textContent = "SHARE RESULT", 3000);
                         return; 
                     } catch (err) {
-                        console.log("Share cancelled or failed");
+                        console.log("Share cancelled");
                         shareBtn.textContent = "SHARE RESULT";
-                        return; // 如果使用者取消，直接結束，不要跳彈窗
+                        return; 
                     }
                 }
 
-                // 2. 系統分享不支援時，才回退到剪貼簿
                 try {
                     const item = new ClipboardItem({ 'image/png': blob });
                     await navigator.clipboard.write([item]);
                     shareBtn.innerHTML = "✅ COPIED";
                     setTimeout(() => shareBtn.textContent = "SHARE RESULT", 3000);
                 } catch (err) {
-                    // 3. 真的沒招了才彈出圖片
                     resultImg.src = dataURL;
                     resultModal.classList.add('active');
                     shareBtn.textContent = "SHARE RESULT";
