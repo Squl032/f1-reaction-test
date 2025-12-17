@@ -232,7 +232,7 @@
 
     <div class="footer">
         <div id="audio-warning">⚠️ No f1-sound.mp3 found</div>
-        <div>v2.4 Pro • Config via Bottom Right</div>
+        <div>v2.5 Pro • Config via Bottom Right</div>
     </div>
 
     <canvas id="shareCanvas" width="600" height="400" style="display:none;"></canvas>
@@ -312,7 +312,7 @@
 
         function updateLabels() { valOffset.textContent = parseFloat(inputOffset.value).toFixed(2) + 's'; valDuration.textContent = parseFloat(inputDuration.value).toFixed(2) + 's'; }
 
-        // Event Listeners with Stop Propagation to prevent game start
+        // Event Listeners with Stop Propagation
         inputOffset.addEventListener('input', (e) => { e.stopPropagation(); updateLabels(); config.offset = parseFloat(inputOffset.value); });
         inputDuration.addEventListener('input', (e) => { e.stopPropagation(); updateLabels(); config.duration = parseFloat(inputDuration.value); });
         selectTheme.addEventListener('change', (e) => { e.stopPropagation(); }); 
@@ -321,7 +321,6 @@
         closeSettingsBtn.addEventListener('click', (e) => { e.stopPropagation(); saveSettings(); settingsModal.classList.remove('active'); });
         closeResultBtn.addEventListener('click', (e) => { e.stopPropagation(); resultModal.classList.remove('active'); });
         
-        // Prevent clicks inside modals from triggering game
         settingsModal.addEventListener('click', (e) => { e.stopPropagation(); });
         resultModal.addEventListener('click', (e) => { e.stopPropagation(); });
 
@@ -383,7 +382,6 @@
         }
 
         function handleInput(e) {
-            // ★ Critical Fix: Prevent game start if modal is open ★
             if (settingsModal.classList.contains('active') || resultModal.classList.contains('active')) return;
             if (e.target.closest('.settings-btn') || e.target.closest('.modal-content') || e.target.closest('.btn-share')) return;
             
@@ -521,6 +519,7 @@
             statsBox.classList.add('visible');
         }
 
+        // ★ 核心修改：移除 text 屬性，強制純圖片分享 ★
         shareBtn.addEventListener('click', async (e) => {
             e.stopPropagation();
             shareBtn.textContent = "Generating...";
@@ -560,34 +559,33 @@
             canvas.toBlob(async (blob) => {
                 if (!blob) return;
                 
-                // 1. Try Native Share
-                const file = new File([blob], 'f1-result.png', { type: 'image/png' });
+                // ★ 1. 優先嘗試系統分享 (純圖片，移除文字避免衝突) ★
+                const file = new File([blob], `f1-score-${Date.now()}.png`, { type: 'image/png' });
+                
                 if (navigator.canShare && navigator.canShare({ files: [file] })) {
                     try {
                         await navigator.share({
-                            files: [file],
-                            title: 'F1 Reaction Result',
-                            text: `My F1 reaction time: ${timerEl.textContent}ms`
+                            files: [file]
+                            // 注意：這裡故意不放 text 和 title，確保 Discord 識別為檔案上傳
                         });
-                        shareBtn.textContent = "SHARE RESULT"; // Reset text
-                        return; // Success, exit
-                    } catch (err) {
-                        // User cancelled share, DO NOT show modal, just reset
-                        console.log("Share cancelled");
-                        shareBtn.textContent = "SHARE RESULT";
+                        shareBtn.textContent = "SHARED";
+                        setTimeout(() => shareBtn.textContent = "SHARE RESULT", 3000);
                         return; 
+                    } catch (err) {
+                        console.log("Share cancelled or failed");
+                        shareBtn.textContent = "SHARE RESULT";
+                        return; // 如果使用者取消，直接結束，不要跳彈窗
                     }
                 }
 
-                // 2. Fallback to Clipboard (Desktop)
+                // 2. 系統分享不支援時，才回退到剪貼簿
                 try {
                     const item = new ClipboardItem({ 'image/png': blob });
                     await navigator.clipboard.write([item]);
                     shareBtn.innerHTML = "✅ COPIED";
                     setTimeout(() => shareBtn.textContent = "SHARE RESULT", 3000);
                 } catch (err) {
-                    // 3. Last Resort: Modal (Old Browsers)
-                    console.log("Fallback to modal");
+                    // 3. 真的沒招了才彈出圖片
                     resultImg.src = dataURL;
                     resultModal.classList.add('active');
                     shareBtn.textContent = "SHARE RESULT";
