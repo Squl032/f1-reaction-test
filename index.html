@@ -1,19 +1,16 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>F1 Reaction Test Pro</title>
     <meta name="theme-color" content="#121212">
-
+    
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Russo+One&family=Titillium+Web:wght@400;600;700&display=swap"
-        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Russo+One&family=Titillium+Web:wght@400;600;700&display=swap" rel="stylesheet">
 
-    <link rel="icon"
-        href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏎️</text></svg>">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏎️</text></svg>">
     <meta property="og:type" content="website" />
     <meta property="og:title" content="🏎️ F1 Reaction Test Pro" />
     <meta property="og:description" content="挑戰 F1 車手反應速度，你能多快起跑？" />
@@ -27,488 +24,153 @@
             --light-on: #ff0000;
             --text-main: #ffffff;
             --text-sub: #c5c6c7;
-            --accent: #66fcf1;
-            /* Cyber Blue accent */
+            --accent: #66fcf1; 
             --danger: #ff003c;
             --border-color: #45a29e;
-
-            /* 字體設定 */
             --font-display: 'Russo One', sans-serif;
-            /* 數字、標題 */
             --font-ui: 'Titillium Web', sans-serif;
-            /* 一般文字 */
         }
 
-        /* 主題配色 */
-        [data-theme="ferrari"] {
-            --bg-color: #1a0000;
-            --panel-bg: #3d0000;
-            --accent: #ffff00;
-            --danger: #ff2800;
-        }
+        [data-theme="ferrari"] { --bg-color: #1a0000; --panel-bg: #3d0000; --accent: #ffff00; --danger: #ff2800; }
+        [data-theme="redbull"] { --bg-color: #000c20; --panel-bg: #001a3d; --accent: #fcd700; --danger: #ff003c; }
+        [data-theme="mclaren"] { --bg-color: #1a0d00; --panel-bg: #2d1800; --accent: #66fcf1; --danger: #ff8000; }
+        [data-theme="mercedes"] { --bg-color: #0e1111; --panel-bg: #1c2222; --accent: #00d2be; --danger: #ff003c; }
 
-        [data-theme="redbull"] {
-            --bg-color: #000c20;
-            --panel-bg: #001a3d;
-            --accent: #fcd700;
-            --danger: #ff003c;
-        }
-
-        [data-theme="mclaren"] {
-            --bg-color: #1a0d00;
-            --panel-bg: #2d1800;
-            --accent: #66fcf1;
-            --danger: #ff8000;
-        }
-
-        [data-theme="mercedes"] {
-            --bg-color: #0e1111;
-            --panel-bg: #1c2222;
-            --accent: #00d2be;
-            --danger: #ff003c;
-        }
-
-        * {
-            box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent;
-        }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
         body {
             background-color: var(--bg-color);
             color: var(--text-main);
             font-family: var(--font-ui);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            margin: 0;
-            overflow: hidden;
-            touch-action: manipulation;
-            cursor: pointer;
-            user-select: none;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            height: 100vh; margin: 0; overflow: hidden;
+            touch-action: manipulation; cursor: pointer; user-select: none;
             transition: background-color 0.4s ease;
         }
 
-        /* 頂部標題 (移到更安全的位置) */
         .header {
-            position: absolute;
-            top: calc(50px + env(safe-area-inset-top));
-            font-family: var(--font-display);
-            font-size: 0.8rem;
-            color: var(--text-sub);
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            pointer-events: none;
-            opacity: 0.6;
+            position: absolute; top: calc(50px + env(safe-area-inset-top));
+            font-family: var(--font-display); font-size: 0.8rem; color: var(--text-sub);
+            letter-spacing: 2px; text-transform: uppercase; pointer-events: none; opacity: 0.6;
         }
 
-        /* 設定按鈕 (移到右下角，完全避開動態島) */
         .settings-btn {
-            position: absolute;
-            bottom: 30px;
-            right: 30px;
-            z-index: 100;
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(5px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 50%;
-            width: 50px;
-            height: 50px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.2s;
+            position: absolute; bottom: 30px; right: 30px; z-index: 100;
+            background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(5px);
+            border: 1px solid rgba(255,255,255,0.2); border-radius: 50%;
+            width: 50px; height: 50px; display: flex; align-items: center; justify-content: center;
+            cursor: pointer; transition: all 0.2s;
         }
+        .settings-btn:hover { background: rgba(255, 255, 255, 0.2); transform: scale(1.1); }
+        .settings-btn svg { width: 24px; height: 24px; fill: var(--text-main); }
 
-        .settings-btn:hover {
-            background: rgba(255, 255, 255, 0.2);
-            transform: scale(1.1);
-        }
-
-        .settings-btn svg {
-            width: 24px;
-            height: 24px;
-            fill: var(--text-main);
-        }
-
-        /* 燈號架構 (更立體) */
         .gantry {
             background: linear-gradient(180deg, #111 0%, #000 100%);
-            padding: 30px 50px;
-            border-radius: 30px;
-            display: flex;
-            gap: 20px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8), inset 0 1px 2px rgba(255, 255, 255, 0.2);
-            border: 1px solid #333;
-            margin-bottom: 50px;
-            position: relative;
+            padding: 30px 50px; border-radius: 30px; display: flex; gap: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.8), inset 0 1px 2px rgba(255,255,255,0.2);
+            border: 1px solid #333; margin-bottom: 50px; position: relative;
         }
-
-        /* 燈號架上方的遮光罩效果 */
-        .gantry::before {
-            content: '';
-            position: absolute;
-            top: -10px;
-            left: 10px;
-            right: 10px;
-            height: 15px;
-            background: #111;
-            border-radius: 10px 10px 0 0;
-            z-index: -1;
-        }
+        .gantry::before { content: ''; position: absolute; top: -10px; left: 10px; right: 10px; height: 15px; background: #111; border-radius: 10px 10px 0 0; z-index: -1; }
 
         .light {
-            width: 60px;
-            height: 60px;
-            background-color: var(--light-off);
-            border-radius: 50%;
-            border: 6px solid #000;
-            position: relative;
-            box-shadow: inset 0 5px 10px rgba(0, 0, 0, 1);
-            transition: transform 0.1s;
+            width: 60px; height: 60px; background-color: var(--light-off);
+            border-radius: 50%; border: 6px solid #000; position: relative;
+            box-shadow: inset 0 5px 10px rgba(0,0,0,1); transition: transform 0.1s;
         }
-
         .light.on {
-            background-color: var(--light-on);
-            box-shadow: 0 0 30px var(--light-on), inset 0 2px 5px rgba(255, 255, 255, 0.5);
-            transform: scale(1.05);
-            border-color: #300;
+            background-color: var(--light-on); box-shadow: 0 0 30px var(--light-on), inset 0 2px 5px rgba(255,255,255,0.5);
+            transform: scale(1.05); border-color: #300;
         }
-
-        /* 玻璃質感反光 */
         .light::after {
-            content: '';
-            position: absolute;
-            top: 15%;
-            left: 15%;
-            width: 35%;
-            height: 25%;
-            border-radius: 50%;
-            background: linear-gradient(135deg, rgba(255, 255, 255, 0.8) 0%, rgba(255, 255, 255, 0) 70%);
-            opacity: 0.15;
-            pointer-events: none;
+            content: ''; position: absolute; top: 15%; left: 15%; width: 35%; height: 25%; border-radius: 50%;
+            background: linear-gradient(135deg, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0) 70%); opacity: 0.15; pointer-events: none;
+        }
+        .light.on::after { opacity: 0.8; }
+
+        .timer-container { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 250px; }
+        #timer { 
+            font-family: var(--font-display); font-size: 7rem; font-weight: 400;
+            letter-spacing: 2px; line-height: 1; font-variant-numeric: tabular-nums;
+            text-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        /* 特別處理 JUMP 字體大小，防止跑版 */
+        #timer.text-mode { font-size: 5rem; }
+
+        #status { 
+            margin-top: 20px; font-family: var(--font-ui); font-size: 1.5rem; 
+            font-weight: 600; color: var(--text-sub); text-transform: uppercase; 
+            letter-spacing: 3px; text-align: center; 
         }
 
-        .light.on::after {
-            opacity: 0.8;
-        }
-
-        /* 計時器與狀態文字 */
-        .timer-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 250px;
-        }
-
-        #timer {
-            font-family: var(--font-display);
-            font-size: 7rem;
-            font-weight: 400;
-            letter-spacing: 2px;
-            line-height: 1;
-            font-variant-numeric: tabular-nums;
-            text-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-        }
-
-        #status {
-            margin-top: 20px;
-            font-family: var(--font-ui);
-            font-size: 1.5rem;
-            font-weight: 600;
-            color: var(--text-sub);
-            text-transform: uppercase;
-            letter-spacing: 3px;
-            text-align: center;
-        }
-
-        /* 數據與按鈕 */
         .stats-box {
-            display: flex;
-            gap: 20px;
-            margin-top: 30px;
-            font-family: var(--font-ui);
-            font-size: 1rem;
-            color: var(--text-sub);
-            opacity: 0;
-            transition: opacity 0.5s;
-            background: rgba(255, 255, 255, 0.05);
-            padding: 10px 20px;
-            border-radius: 50px;
+            display: flex; gap: 20px; margin-top: 30px; 
+            font-family: var(--font-ui); font-size: 1rem; color: var(--text-sub);
+            opacity: 0; transition: opacity 0.5s; background: rgba(255,255,255,0.05);
+            padding: 10px 20px; border-radius: 50px;
         }
-
-        .stats-box.visible {
-            opacity: 1;
-        }
-
-        .stat-item b {
-            color: var(--text-main);
-            font-size: 1.2rem;
-            margin-left: 5px;
-            font-family: var(--font-display);
-        }
+        .stats-box.visible { opacity: 1; }
+        .stat-item b { color: var(--text-main); font-size: 1.2rem; margin-left: 5px; font-family: var(--font-display); }
 
         .btn-share {
-            margin-top: 30px;
-            background: var(--text-main);
-            color: var(--bg-color);
-            border: none;
-            padding: 12px 25px;
-            border-radius: 50px;
-            font-family: var(--font-ui);
-            font-weight: 700;
-            font-size: 1rem;
-            cursor: pointer;
-            display: none;
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
-            transition: transform 0.1s, box-shadow 0.1s;
-            z-index: 50;
+            margin-top: 30px; background: var(--text-main); color: var(--bg-color);
+            border: none; padding: 12px 25px; border-radius: 50px;
+            font-family: var(--font-ui); font-weight: 700; font-size: 1rem;
+            cursor: pointer; display: none; box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+            transition: transform 0.1s, box-shadow 0.1s; z-index: 50; 
         }
+        .btn-share:active { transform: scale(0.95); box-shadow: 0 5px 10px rgba(0,0,0,0.2); }
 
-        .btn-share:active {
-            transform: scale(0.95);
-            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
-        }
+        /* Modal Styles */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(10px); z-index: 200; display: flex; justify-content: center; align-items: center; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
+        .modal-overlay.active { opacity: 1; pointer-events: auto; }
+        .modal-content { background: var(--panel-bg); padding: 40px; border-radius: 20px; width: 90%; max-width: 400px; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 20px 50px rgba(0,0,0,0.5); text-align: center; }
+        .modal-header { font-family: var(--font-display); font-size: 1.5rem; margin-bottom: 25px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 15px; color: var(--text-main); letter-spacing: 1px; }
+        .control-group { margin-bottom: 25px; text-align: left; }
+        .control-label { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 0.9rem; color: var(--text-sub); letter-spacing: 1px;}
+        .control-value { color: var(--accent); font-family: var(--font-display); }
+        select { width: 100%; padding: 12px; border-radius: 10px; background: rgba(0,0,0,0.3); color: #fff; border: 1px solid rgba(255,255,255,0.1); outline: none; font-family: var(--font-ui); cursor: pointer;}
+        input[type="range"] { width: 100%; height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; outline: none; -webkit-appearance: none; }
+        input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 22px; height: 22px; background: var(--text-main); border-radius: 50%; cursor: pointer; border: 2px solid var(--bg-color); }
+        .btn-row { display: flex; gap: 15px; margin-top: 15px; }
+        .btn { flex: 1; padding: 15px; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 1rem; font-family: var(--font-ui); transition: 0.2s; }
+        .btn-test { background: rgba(255,255,255,0.1); color: #fff; }
+        .btn-save { background: var(--text-main); color: var(--bg-color); }
 
-        /* 設定面板 Modal (美化版) */
-        .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.85);
-            backdrop-filter: blur(10px);
-            z-index: 200;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.2s;
-        }
+        /* 結果圖片彈窗 (保底機制) */
+        .image-modal img { max-width: 100%; border-radius: 10px; border: 1px solid #555; margin-bottom: 10px; }
+        .image-modal p { font-size: 0.9rem; color: #aaa; margin-bottom: 10px; }
 
-        .modal-overlay.active {
-            opacity: 1;
-            pointer-events: auto;
-        }
-
-        .modal-content {
-            background: var(--panel-bg);
-            padding: 40px;
-            border-radius: 20px;
-            width: 90%;
-            max-width: 400px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
-        }
-
-        .modal-header {
-            font-family: var(--font-display);
-            font-size: 1.5rem;
-            margin-bottom: 25px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            padding-bottom: 15px;
-            color: var(--text-main);
-            letter-spacing: 1px;
-        }
-
-        .control-group {
-            margin-bottom: 25px;
-        }
-
-        .control-label {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 10px;
-            font-size: 0.9rem;
-            color: var(--text-sub);
-            letter-spacing: 1px;
-        }
-
-        .control-value {
-            color: var(--accent);
-            font-family: var(--font-display);
-        }
-
-        select {
-            width: 100%;
-            padding: 12px;
-            border-radius: 10px;
-            background: rgba(0, 0, 0, 0.3);
-            color: #fff;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            outline: none;
-            font-family: var(--font-ui);
-            cursor: pointer;
-        }
-
-        input[type="range"] {
-            width: 100%;
-            height: 6px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 3px;
-            outline: none;
-            -webkit-appearance: none;
-        }
-
-        input[type="range"]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            width: 22px;
-            height: 22px;
-            background: var(--text-main);
-            border-radius: 50%;
-            cursor: pointer;
-            border: 2px solid var(--bg-color);
-        }
-
-        .btn-row {
-            display: flex;
-            gap: 15px;
-            margin-top: 15px;
-        }
-
-        .btn {
-            flex: 1;
-            padding: 15px;
-            border: none;
-            border-radius: 12px;
-            font-weight: bold;
-            cursor: pointer;
-            font-size: 1rem;
-            font-family: var(--font-ui);
-            transition: 0.2s;
-        }
-
-        .btn-test {
-            background: rgba(255, 255, 255, 0.1);
-            color: #fff;
-        }
-
-        .btn-test:hover {
-            background: rgba(255, 255, 255, 0.2);
-        }
-
-        .btn-save {
-            background: var(--text-main);
-            color: var(--bg-color);
-        }
-
-        .btn-save:hover {
-            background: #ddd;
-        }
-
-        /* 狀態背景顏色與動畫 */
-        body.state-fail {
-            background-color: #3a0000 !important;
-        }
-
-        body.state-success {
-            background-color: #003311 !important;
-        }
-
-        body.state-slow {
-            background-color: #553300 !important;
-        }
+        body.state-fail { background-color: #3a0000 !important; }
+        body.state-success { background-color: #003311 !important; }
+        body.state-slow { background-color: #553300 !important; }
 
         @keyframes shake {
-            0% {
-                transform: translate(1px, 1px) rotate(0deg);
-            }
-
-            10% {
-                transform: translate(-1px, -2px) rotate(-1deg);
-            }
-
-            20% {
-                transform: translate(-3px, 0px) rotate(1deg);
-            }
-
-            30% {
-                transform: translate(3px, 2px) rotate(0deg);
-            }
-
-            40% {
-                transform: translate(1px, -1px) rotate(1deg);
-            }
-
-            50% {
-                transform: translate(-1px, 2px) rotate(-1deg);
-            }
-
-            60% {
-                transform: translate(-3px, 1px) rotate(0deg);
-            }
-
-            70% {
-                transform: translate(3px, 1px) rotate(-1deg);
-            }
-
-            80% {
-                transform: translate(-1px, -1px) rotate(1deg);
-            }
-
-            90% {
-                transform: translate(1px, 2px) rotate(0deg);
-            }
-
-            100% {
-                transform: translate(1px, -2px) rotate(-1deg);
-            }
+            0% { transform: translate(1px, 1px) rotate(0deg); } 10% { transform: translate(-1px, -2px) rotate(-1deg); }
+            20% { transform: translate(-3px, 0px) rotate(1deg); } 30% { transform: translate(3px, 2px) rotate(0deg); }
+            40% { transform: translate(1px, -1px) rotate(1deg); } 50% { transform: translate(-1px, 2px) rotate(-1deg); }
+            60% { transform: translate(-3px, 1px) rotate(0deg); } 70% { transform: translate(3px, 1px) rotate(-1deg); }
+            80% { transform: translate(-1px, -1px) rotate(1deg); } 90% { transform: translate(1px, 2px) rotate(0deg); }
+            100% { transform: translate(1px, -2px) rotate(-1deg); }
         }
+        .shake-effect { animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both; }
 
-        .shake-effect {
-            animation: shake 0.4s cubic-bezier(.36, .07, .19, .97) both;
-        }
-
-        .footer {
-            position: absolute;
-            bottom: 30px;
-            font-size: 0.8rem;
-            color: rgba(255, 255, 255, 0.3);
-            text-align: center;
-            width: 100%;
-            pointer-events: none;
-        }
-
-        #audio-warning {
-            color: var(--accent);
-            display: none;
-            margin-bottom: 5px;
-        }
+        .footer { position: absolute; bottom: 30px; font-size: 0.8rem; color: rgba(255,255,255,0.3); text-align: center; width: 100%; pointer-events: none; }
+        #audio-warning { color: var(--accent); display: none; margin-bottom: 5px; }
 
         @media (max-width: 600px) {
-            .gantry {
-                padding: 20px 30px;
-                gap: 10px;
-                border-radius: 20px;
-            }
-
-            .light {
-                width: 45px;
-                height: 45px;
-                border-width: 4px;
-            }
-
-            #timer {
-                font-size: 5.5rem;
-            }
+            .gantry { padding: 20px 30px; gap: 10px; border-radius: 20px; }
+            .light { width: 45px; height: 45px; border-width: 4px; }
+            #timer { font-size: 5.5rem; }
+            #timer.text-mode { font-size: 4rem; } /* 手機版 JUMP 字體縮小 */
         }
     </style>
 </head>
-
 <body data-theme="default">
 
     <div class="header">F1 Start Procedure</div>
-
+    
     <button class="settings-btn" id="open-settings" title="Settings">
-        <svg viewBox="0 0 24 24">
-            <path
-                d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.07-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.74,8.87 C2.62,9.08,2.66,9.34,2.86,9.49l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.07,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.47-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z" />
-        </svg>
+        <svg viewBox="0 0 24 24"><path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.07-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.74,8.87 C2.62,9.08,2.66,9.34,2.86,9.49l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.07,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.47-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/></svg>
     </button>
 
     <div class="modal-overlay" id="settings-modal">
@@ -525,18 +187,27 @@
                 </select>
             </div>
             <div class="control-group">
-                <div class="control-label"><span>Audio Offset</span><span id="val-offset"
-                        class="control-value">0.64s</span></div>
+                <div class="control-label"><span>Audio Offset</span><span id="val-offset" class="control-value">0.64s</span></div>
                 <input type="range" id="input-offset" min="0" max="2" step="0.01" value="0.64">
             </div>
             <div class="control-group">
-                <div class="control-label"><span>Beep Duration</span><span id="val-duration"
-                        class="control-value">0.80s</span></div>
+                <div class="control-label"><span>Beep Duration</span><span id="val-duration" class="control-value">0.80s</span></div>
                 <input type="range" id="input-duration" min="0.1" max="2" step="0.05" value="0.8">
             </div>
             <div class="btn-row">
                 <button class="btn btn-test" id="btn-test-sound">Sound Check</button>
                 <button class="btn btn-save" id="btn-save">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="result-modal">
+        <div class="modal-content image-modal">
+            <div class="modal-header">Race Result</div>
+            <p>Long press to save / 長按儲存</p>
+            <img id="result-img" src="" alt="Score Card">
+            <div class="btn-row">
+                <button class="btn btn-save" onclick="document.getElementById('result-modal').classList.remove('active')">Close</button>
             </div>
         </div>
     </div>
@@ -552,7 +223,7 @@
     <div class="timer-container">
         <div id="timer">000</div>
         <div id="status">TAP TO START</div>
-
+        
         <div class="stats-box" id="stats-box">
             <div class="stat-item">AO5 <b id="val-ao5">---</b></div>
             <div style="width: 1px; background: rgba(255,255,255,0.2);"></div>
@@ -564,23 +235,26 @@
 
     <div class="footer">
         <div id="audio-warning">⚠️ No f1-sound.mp3 found</div>
-        <div>v2.0 Pro • Config via Bottom Right</div>
+        <div>v2.1 Pro • Config via Bottom Right</div>
     </div>
 
     <canvas id="shareCanvas" width="600" height="400" style="display:none;"></canvas>
 
     <script>
         const AUDIO_FILENAME = 'f1-sound.mp3';
-        const GITHUB_URL = 'squl032.github.io/f1-reaction-test';
-
+        const GITHUB_URL = 'squl032.github.io/f1-reaction-test'; 
+        
         const lights = Array.from(document.querySelectorAll('.light'));
         const timerEl = document.getElementById('timer');
         const statusEl = document.getElementById('status');
         const body = document.body;
         const statsBox = document.getElementById('stats-box');
         const shareBtn = document.getElementById('btn-share');
-
+        
         const settingsModal = document.getElementById('settings-modal');
+        const resultModal = document.getElementById('result-modal');
+        const resultImg = document.getElementById('result-img');
+        
         const openSettingsBtn = document.getElementById('open-settings');
         const closeSettingsBtn = document.getElementById('btn-save');
         const testSoundBtn = document.getElementById('btn-test-sound');
@@ -590,29 +264,28 @@
         const valDuration = document.getElementById('val-duration');
         const selectTheme = document.getElementById('select-theme');
 
-        let state = 'idle';
+        let state = 'idle'; 
         let startTime = 0;
         let timeoutIds = [];
         let audioCtx = null;
         let beepBuffer = null;
-        let historyTimes = [];
+        let historyTimes = []; 
         let personalBest = null;
 
         let config = { offset: 0.64, duration: 0.8, theme: 'default' };
 
-        // --- Config ---
         function loadSettings() {
-            const saved = localStorage.getItem('f1_config_v3'); // v3 for safety
+            const saved = localStorage.getItem('f1_config_v3');
             if (saved) config = { ...config, ...JSON.parse(saved) };
-
+            
             inputOffset.value = config.offset;
             inputDuration.value = config.duration;
             selectTheme.value = config.theme;
             applyTheme(config.theme);
             updateLabels();
-
+            
             const savedPB = localStorage.getItem('f1_pb');
-            if (savedPB) personalBest = parseInt(savedPB);
+            if(savedPB) personalBest = parseInt(savedPB);
             updateStatsUI();
         }
 
@@ -633,7 +306,6 @@
         openSettingsBtn.addEventListener('click', (e) => { e.stopPropagation(); settingsModal.classList.add('active'); });
         closeSettingsBtn.addEventListener('click', (e) => { e.stopPropagation(); saveSettings(); settingsModal.classList.remove('active'); });
 
-        // --- Audio ---
         async function initAudio() {
             if (audioCtx) return;
             const AudioContext = window.AudioContext || window.webkitAudioContext;
@@ -682,20 +354,15 @@
             osc.stop(t + 0.5);
         }
 
-        testSoundBtn.addEventListener('click', (e) => { e.stopPropagation(); if (!audioCtx) initAudio().then(playBeep); else playBeep(); });
+        testSoundBtn.addEventListener('click', (e) => { e.stopPropagation(); if(!audioCtx) initAudio().then(playBeep); else playBeep(); });
 
-        // --- Haptics (Vibration) ---
         function triggerHaptic(type) {
             if (!navigator.vibrate) return;
-            // 亮燈震動 (短)
             if (type === 'tick') navigator.vibrate(20);
-            // 成功震動 (三下)
             if (type === 'success') navigator.vibrate([80, 50, 80, 50, 80]);
-            // 失敗震動 (長)
             if (type === 'fail') navigator.vibrate(200);
         }
 
-        // --- Game Loop ---
         function handleInput(e) {
             if (e.target.closest('.settings-btn') || e.target.closest('.modal-content') || e.target.closest('.btn-share')) return;
             if (e.type === 'touchstart') e.preventDefault();
@@ -714,17 +381,17 @@
             resetState();
             state = 'sequence';
             statusEl.textContent = "SEQUENCE START";
-
+            
             for (let i = 0; i < 5; i++) {
                 timeoutIds.push(setTimeout(() => {
                     if (state !== 'sequence') return;
                     lights[i].classList.add('on');
-                    playBeep();
-                    triggerHaptic('tick'); // ★ 亮燈震一下
+                    playBeep(); 
+                    triggerHaptic('tick'); 
                 }, (i + 1) * 1000));
             }
 
-            const randomDelay = Math.random() * 2800 + 200;
+            const randomDelay = Math.random() * 2800 + 200; 
             timeoutIds.push(setTimeout(() => {
                 if (state !== 'sequence') return;
                 state = 'waiting';
@@ -749,7 +416,7 @@
 
         function finishGame() {
             const reactionTime = Math.floor(performance.now() - startTime);
-
+            
             if (reactionTime < 100) {
                 state = 'finished';
                 playFailSound();
@@ -757,12 +424,12 @@
                 timerEl.textContent = reactionTime;
                 statusEl.textContent = "ANTICIPATED!";
                 triggerHaptic('fail');
-                shareBtn.style.display = 'none';
+                shareBtn.style.display = 'none'; 
                 return;
             }
 
             state = 'finished';
-
+            
             if (reactionTime > 500) {
                 body.className = 'state-slow';
                 statusEl.textContent = "+0.500s (SLOW)";
@@ -772,7 +439,7 @@
                 statusEl.textContent = reactionTime < 200 ? "F1 DRIVER PACE" : "GOOD REACTION";
                 body.classList.add('shake-effect');
                 setTimeout(() => body.classList.remove('shake-effect'), 500);
-                triggerHaptic('success'); // ★ 成功震三下
+                triggerHaptic('success');
             }
 
             timerEl.textContent = reactionTime;
@@ -780,16 +447,20 @@
             shareBtn.style.display = 'inline-block';
         }
 
+        // ★ 修正版：搶跑時字體變小，並拆分文字 ★
         function falseStart() {
             state = 'finished';
             playFailSound();
             timeoutIds.forEach(id => clearTimeout(id));
             body.className = 'state-fail';
             lights.forEach(l => l.classList.remove('on'));
-            timerEl.textContent = "JUMP START";
-            statusEl.textContent = "FALSE START";
+            
+            timerEl.classList.add('text-mode'); // 縮小字體
+            timerEl.textContent = "JUMP"; // 只顯示 JUMP
+            statusEl.textContent = "FALSE START"; // 下面顯示 FALSE START
+            
             triggerHaptic('fail');
-            shareBtn.style.display = 'none';
+            shareBtn.style.display = 'none'; 
         }
 
         function resetState() {
@@ -797,15 +468,16 @@
             timeoutIds.forEach(id => clearTimeout(id));
             timeoutIds = [];
             lights.forEach(l => l.classList.remove('on'));
-            body.className = '';
-            applyTheme(config.theme);
+            body.className = ''; 
+            applyTheme(config.theme); 
             body.classList.remove('shake-effect');
+            
+            timerEl.classList.remove('text-mode'); // 恢復正常數字字體
             timerEl.textContent = "000";
             statusEl.textContent = "";
             shareBtn.style.display = 'none';
         }
 
-        // --- Stats & Share ---
         function updateStatsData(time) {
             if (!personalBest || time < personalBest) {
                 personalBest = time;
@@ -818,7 +490,7 @@
 
         function getAo5() {
             if (historyTimes.length < 5) return '---';
-            let sorted = [...historyTimes].sort((a, b) => a - b);
+            let sorted = [...historyTimes].sort((a,b)=>a-b);
             let sum = sorted[1] + sorted[2] + sorted[3];
             return Math.floor(sum / 3);
         }
@@ -829,63 +501,76 @@
             statsBox.classList.add('visible');
         }
 
+        // ★ 修正版：圖片生成邏輯 (加入字體預載檢測與保底機制) ★
         shareBtn.addEventListener('click', async (e) => {
             e.stopPropagation();
             shareBtn.textContent = "Generating...";
+            
+            // 確保字體已載入
+            await document.fonts.ready;
+
             const canvas = document.getElementById('shareCanvas');
             const ctx = canvas.getContext('2d');
-
+            
             let bgColor = getComputedStyle(body).getPropertyValue('--bg-color');
             let accent = getComputedStyle(body).getPropertyValue('--text-main');
-
+            
             if (body.classList.contains('state-success')) bgColor = '#003311';
             else if (body.classList.contains('state-slow')) bgColor = '#553300';
             else if (body.classList.contains('state-fail')) bgColor = '#3a0000';
 
             // Draw Background
             ctx.fillStyle = bgColor; ctx.fillRect(0, 0, 600, 400);
-
+            
             // Draw Tech Overlay
             ctx.strokeStyle = 'rgba(255,255,255,0.1)'; ctx.lineWidth = 2;
             ctx.beginPath(); ctx.moveTo(20, 20); ctx.lineTo(580, 20); ctx.lineTo(580, 380); ctx.lineTo(20, 380); ctx.closePath(); ctx.stroke();
-
+            
             // Header
-            ctx.fillStyle = 'rgba(255,255,255,0.7)'; ctx.font = 'bold 24px Arial'; ctx.textAlign = 'center';
+            ctx.fillStyle = 'rgba(255,255,255,0.7)'; ctx.font = 'bold 24px "Russo One", sans-serif'; ctx.textAlign = 'center'; 
             ctx.fillText('F1 REACTION TEST', 300, 70);
-
+            
             // Main Time
-            ctx.font = 'bold 130px sans-serif'; ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 130px "Russo One", sans-serif'; ctx.fillStyle = '#ffffff'; 
             ctx.fillText(timerEl.textContent, 300, 210);
-            ctx.font = '20px sans-serif'; ctx.fillStyle = accent; ctx.fillText('MILLISECONDS', 300, 250);
-
+            ctx.font = '20px "Titillium Web", sans-serif'; ctx.fillStyle = accent; ctx.fillText('MILLISECONDS', 300, 250);
+            
             // Stats
             ctx.font = '24px monospace'; ctx.fillStyle = 'rgba(255,255,255,0.8)';
             const ao5 = document.getElementById('val-ao5').textContent;
             const pb = document.getElementById('val-pb').textContent;
             ctx.fillText(`AO5: ${ao5}  |  PB: ${pb}`, 300, 320);
-
+            
             // Footer
-            ctx.font = '14px Arial'; ctx.fillStyle = 'rgba(255,255,255,0.4)';
+            ctx.font = '14px Arial'; ctx.fillStyle = 'rgba(255,255,255,0.4)'; 
             ctx.fillText(GITHUB_URL, 300, 370);
-
+            
+            // Convert to Image
+            const dataURL = canvas.toDataURL('image/png');
+            
+            // Try to Copy to Clipboard
             try {
+                // 如果是在不支援的環境，這裡會報錯，跳轉到 catch
                 canvas.toBlob(async (blob) => {
+                    if (!blob) throw new Error("Blob failed");
                     const item = new ClipboardItem({ 'image/png': blob });
                     await navigator.clipboard.write([item]);
                     shareBtn.innerHTML = "✅ COPIED";
                     setTimeout(() => shareBtn.innerHTML = "SHARE TELEMETRY", 3000);
                 });
             } catch (err) {
-                shareBtn.textContent = "ERROR";
-                alert("Screenshot manually please.");
+                console.log("Clipboard write failed, showing modal instead.");
+                // ★ 保底機制：顯示圖片彈窗 ★
+                resultImg.src = dataURL;
+                resultModal.classList.add('active');
+                shareBtn.textContent = "SHARE TELEMETRY";
             }
         });
 
         loadSettings();
-        document.addEventListener('touchstart', handleInput, { passive: false });
+        document.addEventListener('touchstart', handleInput, {passive: false});
         document.addEventListener('mousedown', handleInput);
-        document.addEventListener('keydown', (e) => { if (e.code === 'Space' || e.key === 'Enter') handleInput(e); });
+        document.addEventListener('keydown', (e) => { if(e.code === 'Space' || e.key === 'Enter') handleInput(e); });
     </script>
 </body>
-
 </html>
