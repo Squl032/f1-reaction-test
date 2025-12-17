@@ -44,7 +44,8 @@
             background-color: var(--bg-color); color: var(--text-main); font-family: var(--font-ui);
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             height: 100vh; margin: 0; overflow: hidden;
-            touch-action: manipulation; cursor: pointer; user-select: none;
+            touch-action: none; /* 禁止縮放與滾動，這對 Clutch 模式很重要 */
+            cursor: pointer; user-select: none;
             transition: background-color 0.4s ease;
         }
 
@@ -56,6 +57,13 @@
             position: absolute; top: calc(50px + env(safe-area-inset-top));
             font-family: var(--font-display); font-size: 0.8rem; color: var(--text-sub);
             letter-spacing: 2px; text-transform: uppercase; pointer-events: none; opacity: 0.6;
+        }
+
+        .mode-indicator {
+            position: absolute; top: calc(75px + env(safe-area-inset-top));
+            font-family: var(--font-ui); font-size: 0.7rem; color: var(--accent);
+            border: 1px solid var(--accent); padding: 2px 8px; border-radius: 4px;
+            text-transform: uppercase; pointer-events: none; opacity: 0.8;
         }
 
         .settings-btn {
@@ -123,6 +131,7 @@
         }
         .btn-share:active { transform: scale(0.95); box-shadow: 0 5px 10px rgba(0,0,0,0.2); }
 
+        /* Modal Styles */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(10px); z-index: 200; display: flex; justify-content: center; align-items: center; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
         .modal-overlay.active { opacity: 1; pointer-events: auto; }
         .modal-content { background: var(--panel-bg); padding: 40px; border-radius: 20px; width: 90%; max-width: 400px; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 20px 50px rgba(0,0,0,0.5); text-align: center; }
@@ -165,6 +174,7 @@
 <body data-theme="default">
 
     <div class="header">F1 Start Procedure</div>
+    <div class="mode-indicator" id="mode-indicator">TAP MODE</div>
     
     <button class="settings-btn" id="open-settings" title="Settings">
         <svg viewBox="0 0 24 24"><path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.07-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.74,8.87 C2.62,9.08,2.66,9.34,2.86,9.49l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.07,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.47-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/></svg>
@@ -173,6 +183,13 @@
     <div class="modal-overlay" id="settings-modal">
         <div class="modal-content">
             <div class="modal-header">System Config</div>
+            <div class="control-group">
+                <div class="control-label"><span>Input Mode</span></div>
+                <select id="select-mode">
+                    <option value="tap">Tap (Standard)</option>
+                    <option value="clutch">Clutch (Hold & Release)</option>
+                </select>
+            </div>
             <div class="control-group">
                 <div class="control-label"><span>Livery Theme</span></div>
                 <select id="select-theme">
@@ -232,7 +249,7 @@
 
     <div class="footer">
         <div id="audio-warning">⚠️ No f1-sound.mp3 found</div>
-        <div>v2.6 Pro • Config via Bottom Right</div>
+        <div>v3.0 Pro • Config via Bottom Right</div>
     </div>
 
     <canvas id="shareCanvas" width="1200" height="800" style="display:none;"></canvas>
@@ -247,6 +264,7 @@
         const body = document.body;
         const html = document.documentElement;
         const metaThemeColor = document.getElementById('meta-theme-color');
+        const modeIndicator = document.getElementById('mode-indicator');
 
         const statsBox = document.getElementById('stats-box');
         const shareBtn = document.getElementById('btn-share');
@@ -264,8 +282,9 @@
         const valOffset = document.getElementById('val-offset');
         const valDuration = document.getElementById('val-duration');
         const selectTheme = document.getElementById('select-theme');
+        const selectMode = document.getElementById('select-mode');
 
-        let state = 'idle'; 
+        let state = 'idle'; // idle, armed(clutch), sequence, waiting, go, finished
         let startTime = 0;
         let timeoutIds = [];
         let audioCtx = null;
@@ -273,7 +292,8 @@
         let historyTimes = []; 
         let personalBest = null;
 
-        let config = { offset: 0.64, duration: 0.8, theme: 'default' };
+        // ★ New Config: Mode ★
+        let config = { offset: 0.64, duration: 0.8, theme: 'default', mode: 'tap' };
 
         const THEME_COLORS = { 'default': '#0b0c10', 'ferrari': '#1a0000', 'redbull': '#000c20', 'mclaren': '#1a0d00', 'mercedes': '#0e1111' };
         const STATE_COLORS = { 'success': '#003311', 'fail': '#3a0000', 'slow': '#553300' };
@@ -281,13 +301,18 @@
         function setBrowserThemeColor(color) { if (metaThemeColor) metaThemeColor.setAttribute('content', color); }
 
         function loadSettings() {
-            const saved = localStorage.getItem('f1_config_v3');
+            const saved = localStorage.getItem('f1_config_v4'); // v4 for clutch support
             if (saved) config = { ...config, ...JSON.parse(saved) };
+            
             inputOffset.value = config.offset;
             inputDuration.value = config.duration;
             selectTheme.value = config.theme;
+            selectMode.value = config.mode;
+            
             applyTheme(config.theme);
+            applyMode(config.mode);
             updateLabels();
+            
             const savedPB = localStorage.getItem('f1_pb');
             if(savedPB) personalBest = parseInt(savedPB);
             updateStatsUI();
@@ -297,24 +322,36 @@
             config.offset = parseFloat(inputOffset.value);
             config.duration = parseFloat(inputDuration.value);
             config.theme = selectTheme.value;
-            localStorage.setItem('f1_config_v3', JSON.stringify(config));
+            config.mode = selectMode.value;
+            localStorage.setItem('f1_config_v4', JSON.stringify(config));
+            
             applyTheme(config.theme);
+            applyMode(config.mode);
             updateLabels();
         }
 
         function applyTheme(themeName) { 
             body.setAttribute('data-theme', themeName);
-            if (state === 'idle' || state === 'sequence' || state === 'waiting') {
+            if (state === 'idle' || state === 'sequence' || state === 'waiting' || state === 'armed') {
                 const hexColor = THEME_COLORS[themeName] || THEME_COLORS['default'];
                 setBrowserThemeColor(hexColor);
             }
         }
 
+        function applyMode(mode) {
+            modeIndicator.textContent = mode === 'tap' ? "TAP MODE" : "CLUTCH MODE";
+            if (state === 'idle') {
+                statusEl.textContent = mode === 'tap' ? "TAP TO START" : "HOLD TO START";
+            }
+        }
+
         function updateLabels() { valOffset.textContent = parseFloat(inputOffset.value).toFixed(2) + 's'; valDuration.textContent = parseFloat(inputDuration.value).toFixed(2) + 's'; }
 
+        // Settings Listeners
         inputOffset.addEventListener('input', (e) => { e.stopPropagation(); updateLabels(); config.offset = parseFloat(inputOffset.value); });
         inputDuration.addEventListener('input', (e) => { e.stopPropagation(); updateLabels(); config.duration = parseFloat(inputDuration.value); });
         selectTheme.addEventListener('change', (e) => { e.stopPropagation(); }); 
+        selectMode.addEventListener('change', (e) => { e.stopPropagation(); }); 
         
         openSettingsBtn.addEventListener('click', (e) => { e.stopPropagation(); settingsModal.classList.add('active'); });
         closeSettingsBtn.addEventListener('click', (e) => { e.stopPropagation(); saveSettings(); settingsModal.classList.remove('active'); });
@@ -334,7 +371,7 @@
                 audioCtx.decodeAudioData(arrayBuffer, (buffer) => {
                     beepBuffer = buffer;
                     document.getElementById('audio-warning').style.display = 'none';
-                    statusEl.textContent = "SYSTEM READY";
+                    if (state === 'idle') statusEl.textContent = config.mode === 'tap' ? "TAP TO START" : "HOLD TO START";
                 });
             } catch (error) {
                 console.error(error);
@@ -380,25 +417,61 @@
             if (type === 'fail') navigator.vibrate(200);
         }
 
-        function handleInput(e) {
+        // --- ★ Input Logic (The Core Update) ★ ---
+        
+        function handlePress(e) {
             if (settingsModal.classList.contains('active') || resultModal.classList.contains('active')) return;
             if (e.target.closest('.settings-btn') || e.target.closest('.modal-content') || e.target.closest('.btn-share')) return;
             
+            // 重要：取消預設行為，防止選取或長按菜單
             if (e.type === 'touchstart') e.preventDefault();
+            
             if (!audioCtx) initAudio();
 
-            if (state === 'idle' || state === 'finished') {
-                startSequence();
-            } else if (state === 'sequence' || state === 'waiting') {
+            // 如果是完成狀態，點擊重置 (無論模式)
+            if (state === 'finished') {
+                resetState();
+                return;
+            }
+
+            // --- Tap Mode Logic (Original) ---
+            if (config.mode === 'tap') {
+                if (state === 'idle') {
+                    startSequence();
+                } else if (state === 'sequence' || state === 'waiting') {
+                    falseStart();
+                } else if (state === 'go') {
+                    finishGame();
+                }
+            } 
+            // --- Clutch Mode Logic (Press Down) ---
+            else if (config.mode === 'clutch') {
+                if (state === 'idle') {
+                    state = 'armed'; // 按住，準備開始
+                    startSequence();
+                }
+            }
+        }
+
+        function handleRelease(e) {
+            if (config.mode !== 'clutch') return;
+            if (state === 'finished') return; // 已經結束了，放開沒事
+
+            // --- Clutch Mode Logic (Release) ---
+            if (state === 'armed' || state === 'sequence' || state === 'waiting') {
+                // 燈滅前放開 -> 搶跑
                 falseStart();
             } else if (state === 'go') {
+                // 燈滅後放開 -> 成功
                 finishGame();
             }
         }
 
         function startSequence() {
-            resetState();
-            state = 'sequence';
+            if (config.mode === 'tap') state = 'sequence';
+            // clutch mode state is already 'armed' or 'sequence'
+            if (config.mode === 'clutch') state = 'sequence';
+
             statusEl.textContent = "SEQUENCE START";
             for (let i = 0; i < 5; i++) {
                 timeoutIds.push(setTimeout(() => {
@@ -420,7 +493,7 @@
             state = 'go';
             startTime = performance.now();
             lights.forEach(l => l.classList.remove('on'));
-            statusEl.textContent = "GO!";
+            statusEl.textContent = config.mode === 'tap' ? "GO!" : "RELEASE!";
             requestAnimationFrame(updateTimer);
         }
 
@@ -491,7 +564,7 @@
             body.classList.remove('shake-effect');
             timerEl.classList.remove('text-mode'); 
             timerEl.textContent = "000";
-            statusEl.textContent = "";
+            statusEl.textContent = config.mode === 'tap' ? "TAP TO START" : "HOLD TO START";
             shareBtn.style.display = 'none';
         }
 
@@ -501,7 +574,7 @@
                 localStorage.setItem('f1_pb', personalBest);
             }
             historyTimes.push(time);
-            if (historyTimes.length > 5) historyTimes.shift();
+            if (historyTimes.length > 5) historyTimes.shift(); // Keep last 5
             updateStatsUI();
         }
 
@@ -518,6 +591,47 @@
             statsBox.classList.add('visible');
         }
 
+        // --- ★ Telemetry Graph Drawing on Canvas ★ ---
+        function drawTelemetry(ctx) {
+            if (historyTimes.length < 2) return; // Need at least 2 points
+
+            const w = 1200;
+            const h = 800;
+            const graphH = 200;
+            const graphY = 550; // Draw below the time
+            const pad = 100;
+
+            // Normalize data for graph
+            const minT = Math.min(...historyTimes) * 0.9;
+            const maxT = Math.max(...historyTimes) * 1.1;
+            const range = maxT - minT || 100;
+
+            ctx.beginPath();
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+            ctx.lineWidth = 6;
+            ctx.lineJoin = 'round';
+
+            // Draw sparkline
+            historyTimes.forEach((val, idx) => {
+                const x = pad + (idx / (historyTimes.length - 1)) * (w - pad * 2);
+                const y = graphY + graphH - ((val - minT) / range) * graphH;
+                if (idx === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+                
+                // Draw dot
+                ctx.fillStyle = '#fff';
+                ctx.beginPath();
+                ctx.arc(x, y, 8, 0, Math.PI * 2);
+                ctx.fill();
+            });
+            ctx.stroke();
+            
+            // Label
+            ctx.fillStyle = 'rgba(255,255,255,0.3)';
+            ctx.font = '20px Arial';
+            ctx.fillText("SESSION TREND (LAST 5)", w/2, graphY + graphH + 40);
+        }
+
         shareBtn.addEventListener('click', async (e) => {
             e.stopPropagation();
             shareBtn.textContent = "Generating...";
@@ -525,9 +639,6 @@
             await document.fonts.ready;
             const canvas = document.getElementById('shareCanvas');
             const ctx = canvas.getContext('2d');
-            
-            // ★ 高解析度繪圖 (Scale: 2x) ★
-            // 因為 Canvas 尺寸是 1200x800，所以座標都要 x2
             
             let bgColor = getComputedStyle(body).getPropertyValue('--bg-color');
             let accent = getComputedStyle(body).getPropertyValue('--text-main');
@@ -538,7 +649,7 @@
 
             ctx.fillStyle = bgColor; ctx.fillRect(0, 0, 1200, 800);
             
-            ctx.strokeStyle = 'rgba(255,255,255,0.1)'; ctx.lineWidth = 4; // 線條加粗
+            ctx.strokeStyle = 'rgba(255,255,255,0.1)'; ctx.lineWidth = 4;
             ctx.beginPath(); ctx.moveTo(40, 40); ctx.lineTo(1160, 40); ctx.lineTo(1160, 760); ctx.lineTo(40, 760); ctx.closePath(); ctx.stroke();
             
             ctx.fillStyle = 'rgba(255,255,255,0.7)'; ctx.font = 'bold 48px "Russo One", sans-serif'; ctx.textAlign = 'center'; 
@@ -549,10 +660,15 @@
             
             ctx.font = '40px "Titillium Web", sans-serif'; ctx.fillStyle = accent; ctx.fillText('MILLISECONDS', 600, 500);
             
+            // Draw Telemetry Graph
+            if (historyTimes.length >= 2) {
+                drawTelemetry(ctx);
+            }
+
             ctx.font = '48px monospace'; ctx.fillStyle = 'rgba(255,255,255,0.8)';
             const ao5 = document.getElementById('val-ao5').textContent;
             const pb = document.getElementById('val-pb').textContent;
-            ctx.fillText(`AO5: ${ao5}  |  PB: ${pb}`, 600, 640);
+            ctx.fillText(`AO5: ${ao5}  |  PB: ${pb}`, 600, 680);
             
             ctx.font = '28px Arial'; ctx.fillStyle = 'rgba(255,255,255,0.4)'; 
             ctx.fillText(GITHUB_URL, 600, 740);
@@ -593,9 +709,25 @@
         });
 
         loadSettings();
-        document.addEventListener('touchstart', handleInput, {passive: false});
-        document.addEventListener('mousedown', handleInput);
-        document.addEventListener('keydown', (e) => { if(e.code === 'Space' || e.key === 'Enter') handleInput(e); });
+        
+        // ★ Event Listeners for Clutch/Tap Support ★
+        document.addEventListener('touchstart', handlePress, {passive: false});
+        document.addEventListener('mousedown', handlePress);
+        
+        document.addEventListener('touchend', handleRelease, {passive: false});
+        document.addEventListener('mouseup', handleRelease);
+        
+        document.addEventListener('keydown', (e) => { 
+            if (e.code === 'Space' || e.key === 'Enter') {
+                // Keydown starts sequence in clutch mode, or taps in tap mode
+                handlePress({ type: 'mousedown', target: body, preventDefault: () => {} });
+            }
+        });
+        document.addEventListener('keyup', (e) => { 
+            if (e.code === 'Space' || e.key === 'Enter') {
+                handleRelease();
+            }
+        });
     </script>
 </body>
 </html>
