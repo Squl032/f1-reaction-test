@@ -9,7 +9,6 @@
 
     <link rel="icon"
         href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏎️</text></svg>">
-
     <meta property="og:type" content="website" />
     <meta property="og:title" content="🏎️ F1 Reaction Test Pro" />
     <meta property="og:description" content="挑戰 F1 車手反應速度，你能多快起跑？" />
@@ -17,7 +16,6 @@
 
     <style>
         :root {
-            /* 預設主題 (Default Dark) */
             --bg-color: #121212;
             --panel-bg: #1e1e1e;
             --light-off: #2a2a2a;
@@ -25,11 +23,10 @@
             --text-main: #ffffff;
             --text-sub: #888888;
             --accent: #e10600;
-            /* F1 Red */
             --border-color: #333;
         }
 
-        /* 車隊主題定義 */
+        /* 主題配色保持不變 */
         [data-theme="ferrari"] {
             --bg-color: #1a0000;
             --panel-bg: #2d0000;
@@ -41,7 +38,6 @@
             --bg-color: #000c20;
             --panel-bg: #001a3d;
             --accent: #fcd700;
-            /* Yellow accent */
             --text-sub: #8faabf;
             --border-color: #102542;
         }
@@ -82,7 +78,50 @@
             transition: background-color 0.3s, color 0.3s;
         }
 
-        /* 震動特效 */
+        /* ★ UI 修正：大幅增加頂部距離，避開動態島 ★ */
+        .header {
+            position: absolute;
+            /* 原本 20px 改為 60px，確保避開動態島 */
+            top: calc(60px + env(safe-area-inset-top));
+            font-size: 0.9rem;
+            color: var(--text-sub);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            pointer-events: none;
+            width: 100%;
+            text-align: center;
+        }
+
+        .settings-btn {
+            position: absolute;
+            /* 同樣下移 */
+            top: calc(60px + env(safe-area-inset-top));
+            left: 30px;
+            /* 稍微往右移一點 */
+            z-index: 100;
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            border-radius: 50%;
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .settings-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .settings-btn svg {
+            width: 24px;
+            height: 24px;
+            fill: var(--text-main);
+        }
+
+        /* 其餘 CSS 保持不變 */
         @keyframes shake {
             0% {
                 transform: translate(1px, 1px) rotate(0deg);
@@ -133,45 +172,6 @@
             animation: shake 0.4s cubic-bezier(.36, .07, .19, .97) both;
         }
 
-        /* UI 元件 */
-        .header {
-            position: absolute;
-            top: calc(20px + env(safe-area-inset-top));
-            font-size: 0.9rem;
-            color: var(--text-sub);
-            letter-spacing: 1px;
-            text-transform: uppercase;
-            pointer-events: none;
-        }
-
-        .settings-btn {
-            position: absolute;
-            top: calc(20px + env(safe-area-inset-top));
-            left: 20px;
-            z-index: 100;
-            background: rgba(255, 255, 255, 0.1);
-            border: none;
-            border-radius: 50%;
-            width: 44px;
-            height: 44px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-
-        .settings-btn:hover {
-            background: rgba(255, 255, 255, 0.2);
-        }
-
-        .settings-btn svg {
-            width: 24px;
-            height: 24px;
-            fill: var(--text-main);
-        }
-
-        /* 設定面板 Modal */
         .modal-overlay {
             position: fixed;
             top: 0;
@@ -231,7 +231,6 @@
             font-family: monospace;
         }
 
-        /* Select Dropdown */
         select {
             width: 100%;
             padding: 8px;
@@ -288,7 +287,6 @@
             text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
         }
 
-        /* 燈號架 */
         .gantry {
             background: #000;
             padding: 25px 40px;
@@ -333,7 +331,6 @@
             opacity: 0.6;
         }
 
-        /* 內容區 */
         .timer-container {
             display: flex;
             flex-direction: column;
@@ -398,7 +395,6 @@
             transform: scale(0.95);
         }
 
-        /* 結果狀態顏色 (Override themes) */
         body.state-fail {
             background-color: #4a1a1a !important;
         }
@@ -442,11 +438,7 @@
                 font-size: 5rem;
             }
 
-            .header {
-                width: 100%;
-                text-align: center;
-                padding-left: 50px;
-            }
+            /* header 已經在上面統一設定了，這裡不需要再覆蓋 */
         }
     </style>
 </head>
@@ -465,7 +457,6 @@
     <div class="modal-overlay" id="settings-modal">
         <div class="modal-content">
             <div class="modal-header">Settings</div>
-
             <div class="control-group">
                 <div class="control-label"><span>Team Theme</span></div>
                 <select id="select-theme">
@@ -476,19 +467,16 @@
                     <option value="mercedes">Silver Arrows</option>
                 </select>
             </div>
-
             <div class="control-group">
                 <div class="control-label"><span>Audio Offset</span><span id="val-offset"
                         class="control-value">0.64s</span></div>
                 <input type="range" id="input-offset" min="0" max="2" step="0.01" value="0.64">
             </div>
-
             <div class="control-group">
                 <div class="control-label"><span>Beep Duration</span><span id="val-duration"
                         class="control-value">0.80s</span></div>
                 <input type="range" id="input-duration" min="0.1" max="2" step="0.05" value="0.8">
             </div>
-
             <div class="btn-row">
                 <button class="btn btn-test" id="btn-test-sound">🎵 Test</button>
                 <button class="btn btn-save" id="btn-save">Save</button>
@@ -528,7 +516,6 @@
         const AUDIO_FILENAME = 'f1-sound.mp3';
         const GITHUB_URL = 'squl032.github.io/f1-reaction-test';
 
-        // DOM
         const lights = Array.from(document.querySelectorAll('.light'));
         const timerEl = document.getElementById('timer');
         const statusEl = document.getElementById('status');
@@ -536,7 +523,6 @@
         const statsBox = document.getElementById('stats-box');
         const shareBtn = document.getElementById('btn-share');
 
-        // Settings UI
         const settingsModal = document.getElementById('settings-modal');
         const openSettingsBtn = document.getElementById('open-settings');
         const closeSettingsBtn = document.getElementById('btn-save');
@@ -547,7 +533,6 @@
         const valDuration = document.getElementById('val-duration');
         const selectTheme = document.getElementById('select-theme');
 
-        // State
         let state = 'idle';
         let startTime = 0;
         let timeoutIds = [];
@@ -558,17 +543,14 @@
 
         let config = { offset: 0.64, duration: 0.8, theme: 'default' };
 
-        // --- Config ---
         function loadSettings() {
-            const saved = localStorage.getItem('f1_config_v2'); // 改個key避免舊設定衝突
+            const saved = localStorage.getItem('f1_config_v2');
             if (saved) config = { ...config, ...JSON.parse(saved) };
-
             inputOffset.value = config.offset;
             inputDuration.value = config.duration;
             selectTheme.value = config.theme;
             applyTheme(config.theme);
             updateLabels();
-
             const savedPB = localStorage.getItem('f1_pb');
             if (savedPB) personalBest = parseInt(savedPB);
             updateStatsUI();
@@ -579,28 +561,19 @@
             config.duration = parseFloat(inputDuration.value);
             config.theme = selectTheme.value;
             localStorage.setItem('f1_config_v2', JSON.stringify(config));
-
             applyTheme(config.theme);
             updateLabels();
         }
 
-        function applyTheme(themeName) {
-            body.setAttribute('data-theme', themeName);
-        }
+        function applyTheme(themeName) { body.setAttribute('data-theme', themeName); }
+        function updateLabels() { valOffset.textContent = parseFloat(inputOffset.value).toFixed(2) + 's'; valDuration.textContent = parseFloat(inputDuration.value).toFixed(2) + 's'; }
 
-        function updateLabels() {
-            valOffset.textContent = parseFloat(inputOffset.value).toFixed(2) + 's';
-            valDuration.textContent = parseFloat(inputDuration.value).toFixed(2) + 's';
-        }
-
-        // Event Listeners for Settings
         inputOffset.addEventListener('input', () => { updateLabels(); config.offset = parseFloat(inputOffset.value); });
         inputDuration.addEventListener('input', () => { updateLabels(); config.duration = parseFloat(inputDuration.value); });
 
         openSettingsBtn.addEventListener('click', (e) => { e.stopPropagation(); settingsModal.classList.add('active'); });
         closeSettingsBtn.addEventListener('click', (e) => { e.stopPropagation(); saveSettings(); settingsModal.classList.remove('active'); });
 
-        // --- Audio ---
         async function initAudio() {
             if (audioCtx) return;
             const AudioContext = window.AudioContext || window.webkitAudioContext;
@@ -651,7 +624,15 @@
 
         testSoundBtn.addEventListener('click', (e) => { e.stopPropagation(); if (!audioCtx) initAudio().then(playBeep); else playBeep(); });
 
-        // --- Game Logic ---
+        // --- 震動封裝函式 (嘗試相容) ---
+        function triggerVibration(pattern) {
+            // Android Support
+            if (navigator.vibrate) {
+                navigator.vibrate(pattern);
+            }
+            // iOS 依然不支援震動，但保留此函式結構
+        }
+
         function handleInput(e) {
             if (e.target.closest('.settings-btn') || e.target.closest('.modal-content') || e.target.closest('.btn-share')) return;
             if (e.type === 'touchstart') e.preventDefault();
@@ -676,6 +657,8 @@
                     if (state !== 'sequence') return;
                     lights[i].classList.add('on');
                     playBeep();
+                    // ★ 亮燈時：震動 50ms (Android Only)
+                    triggerVibration(50);
                 }, (i + 1) * 1000));
             }
 
@@ -705,35 +688,32 @@
         function finishGame() {
             const reactionTime = Math.floor(performance.now() - startTime);
 
-            // 1. 生理極限偵測 (< 100ms)
             if (reactionTime < 100) {
                 state = 'finished';
                 playFailSound();
                 body.className = 'state-fail';
                 timerEl.textContent = reactionTime;
                 statusEl.textContent = "ANTICIPATED! (< 100ms)";
-
-                // 失敗震動 (雙次短震)
-                if (navigator.vibrate) navigator.vibrate([50, 50, 50]);
-
+                triggerVibration([50, 50, 50]); // 失敗震動
                 shareBtn.style.display = 'none';
                 return;
             }
 
             state = 'finished';
 
-            // 2. 顏色分級與震動
             if (reactionTime > 500) {
                 body.className = 'state-slow';
                 statusEl.textContent = "Too Slow... (> 500ms)";
+                triggerVibration(100); // 慢速只震一下
             } else {
                 body.className = 'state-success';
                 statusEl.textContent = reactionTime < 200 ? "F1 DRIVER LEVEL! 🏆" : "Good Reaction";
-
-                // 成功震動 (單次長震)
                 body.classList.add('shake-effect');
                 setTimeout(() => body.classList.remove('shake-effect'), 500);
-                if (navigator.vibrate) navigator.vibrate(200);
+
+                // ★ 成功時：連續震動 3 次 (Android Only)
+                // 模式：[震, 停, 震, 停, 震]
+                triggerVibration([100, 50, 100, 50, 100]);
             }
 
             timerEl.textContent = reactionTime;
@@ -749,10 +729,7 @@
             lights.forEach(l => l.classList.remove('on'));
             timerEl.textContent = "JUMP";
             statusEl.textContent = "JUMP START";
-
-            // 失敗震動
-            if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
-
+            triggerVibration([100, 50, 100]);
             shareBtn.style.display = 'none';
         }
 
@@ -761,17 +738,14 @@
             timeoutIds.forEach(id => clearTimeout(id));
             timeoutIds = [];
             lights.forEach(l => l.classList.remove('on'));
-
-            // 重置時清除所有狀態顏色，恢復主題色
             body.className = '';
-
+            applyTheme(config.theme); // 確保主題不被清除
             body.classList.remove('shake-effect');
             timerEl.textContent = "000";
             statusEl.textContent = "";
             shareBtn.style.display = 'none';
         }
 
-        // --- Stats & Canvas ---
         function updateStatsData(time) {
             if (!personalBest || time < personalBest) {
                 personalBest = time;
@@ -800,43 +774,22 @@
             shareBtn.textContent = "Generating...";
             const canvas = document.getElementById('shareCanvas');
             const ctx = canvas.getContext('2d');
-
-            // 根據當前狀態決定背景色
             const currentTime = parseInt(timerEl.textContent);
-            let bgColor = getComputedStyle(body).getPropertyValue('--bg-color'); // 預設跟隨主題
+            let bgColor = getComputedStyle(body).getPropertyValue('--bg-color');
 
-            // 如果是在結算畫面，且有特定顏色狀態，則覆蓋
             if (body.classList.contains('state-success')) bgColor = '#1a4a2a';
             else if (body.classList.contains('state-slow')) bgColor = '#5e4300';
             else if (body.classList.contains('state-fail')) bgColor = '#4a1a1a';
 
-            // 繪製卡片
-            ctx.fillStyle = bgColor;
-            ctx.fillRect(0, 0, 600, 400);
-
-            // 邊框顏色 (稍微亮一點)
-            ctx.strokeStyle = 'rgba(255,255,255,0.2)';
-            ctx.lineWidth = 10;
-            ctx.strokeRect(10, 10, 580, 380);
-
-            ctx.fillStyle = '#ffffff';
-            ctx.font = 'bold 30px Arial';
-            ctx.textAlign = 'center';
-            ctx.fillText('F1 REACTION TEST', 300, 60);
-
-            ctx.font = 'bold 120px Courier New';
-            ctx.fillStyle = '#ffffff';
-            ctx.fillText(timerEl.textContent + ' ms', 300, 200);
-
-            ctx.font = '24px Courier New';
-            ctx.fillStyle = 'rgba(255,255,255,0.8)';
+            ctx.fillStyle = bgColor; ctx.fillRect(0, 0, 600, 400);
+            ctx.strokeStyle = 'rgba(255,255,255,0.2)'; ctx.lineWidth = 10; ctx.strokeRect(10, 10, 580, 380);
+            ctx.fillStyle = '#ffffff'; ctx.font = 'bold 30px Arial'; ctx.textAlign = 'center'; ctx.fillText('F1 REACTION TEST', 300, 60);
+            ctx.font = 'bold 120px Courier New'; ctx.fillStyle = '#ffffff'; ctx.fillText(timerEl.textContent + ' ms', 300, 200);
+            ctx.font = '24px Courier New'; ctx.fillStyle = 'rgba(255,255,255,0.8)';
             const ao5 = document.getElementById('val-ao5').textContent;
             const pb = document.getElementById('val-pb').textContent;
             ctx.fillText(`Ao5: ${ao5}ms   |   PB: ${pb}ms`, 300, 280);
-
-            ctx.font = '16px Arial';
-            ctx.fillStyle = 'rgba(255,255,255,0.5)';
-            ctx.fillText(GITHUB_URL, 300, 350);
+            ctx.font = '16px Arial'; ctx.fillStyle = 'rgba(255,255,255,0.5)'; ctx.fillText(GITHUB_URL, 300, 350);
 
             try {
                 canvas.toBlob(async (blob) => {
