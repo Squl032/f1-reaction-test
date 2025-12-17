@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>F1 Reaction Test Pro</title>
-    <meta name="theme-color" content="#121212">
+    
+    <meta name="theme-color" content="#0b0c10" id="meta-theme-color">
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -38,6 +39,12 @@
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
+        /* ★ 修正：讓 html 也繼承背景色，解決 iOS 橡皮筋特效露出的底色問題 ★ */
+        html {
+            background-color: var(--bg-color);
+            transition: background-color 0.4s ease;
+        }
+
         body {
             background-color: var(--bg-color);
             color: var(--text-main);
@@ -47,6 +54,12 @@
             touch-action: manipulation; cursor: pointer; user-select: none;
             transition: background-color 0.4s ease;
         }
+
+        /* 狀態顏色 (加上 !important 確保覆蓋) */
+        /* 同時我們會在 JS 裡同步修改 meta-theme-color */
+        html.state-fail, body.state-fail { background-color: #3a0000 !important; }
+        html.state-success, body.state-success { background-color: #003311 !important; }
+        html.state-slow, body.state-slow { background-color: #553300 !important; }
 
         .header {
             position: absolute; top: calc(50px + env(safe-area-inset-top));
@@ -93,7 +106,6 @@
             letter-spacing: 2px; line-height: 1; font-variant-numeric: tabular-nums;
             text-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
-        /* 特別處理 JUMP 字體大小，防止跑版 */
         #timer.text-mode { font-size: 5rem; }
 
         #status { 
@@ -136,13 +148,8 @@
         .btn-test { background: rgba(255,255,255,0.1); color: #fff; }
         .btn-save { background: var(--text-main); color: var(--bg-color); }
 
-        /* 結果圖片彈窗 (保底機制) */
         .image-modal img { max-width: 100%; border-radius: 10px; border: 1px solid #555; margin-bottom: 10px; }
         .image-modal p { font-size: 0.9rem; color: #aaa; margin-bottom: 10px; }
-
-        body.state-fail { background-color: #3a0000 !important; }
-        body.state-success { background-color: #003311 !important; }
-        body.state-slow { background-color: #553300 !important; }
 
         @keyframes shake {
             0% { transform: translate(1px, 1px) rotate(0deg); } 10% { transform: translate(-1px, -2px) rotate(-1deg); }
@@ -161,7 +168,7 @@
             .gantry { padding: 20px 30px; gap: 10px; border-radius: 20px; }
             .light { width: 45px; height: 45px; border-width: 4px; }
             #timer { font-size: 5.5rem; }
-            #timer.text-mode { font-size: 4rem; } /* 手機版 JUMP 字體縮小 */
+            #timer.text-mode { font-size: 4rem; }
         }
     </style>
 </head>
@@ -235,7 +242,7 @@
 
     <div class="footer">
         <div id="audio-warning">⚠️ No f1-sound.mp3 found</div>
-        <div>v2.1 Pro • Config via Bottom Right</div>
+        <div>v2.2 Pro • Config via Bottom Right</div>
     </div>
 
     <canvas id="shareCanvas" width="600" height="400" style="display:none;"></canvas>
@@ -248,6 +255,9 @@
         const timerEl = document.getElementById('timer');
         const statusEl = document.getElementById('status');
         const body = document.body;
+        const html = document.documentElement; // 取得 html 元素
+        const metaThemeColor = document.getElementById('meta-theme-color'); // 取得 meta tag
+
         const statsBox = document.getElementById('stats-box');
         const shareBtn = document.getElementById('btn-share');
         
@@ -274,6 +284,25 @@
 
         let config = { offset: 0.64, duration: 0.8, theme: 'default' };
 
+        // ★ 定義主題對應的 Hex 顏色，用於同步 Meta Tag ★
+        const THEME_COLORS = {
+            'default': '#0b0c10',
+            'ferrari': '#1a0000',
+            'redbull': '#000c20',
+            'mclaren': '#1a0d00',
+            'mercedes': '#0e1111'
+        };
+        const STATE_COLORS = {
+            'success': '#003311',
+            'fail': '#3a0000',
+            'slow': '#553300'
+        };
+
+        // --- Helper: 設定瀏覽器邊框顏色 ---
+        function setBrowserThemeColor(color) {
+            if (metaThemeColor) metaThemeColor.setAttribute('content', color);
+        }
+
         function loadSettings() {
             const saved = localStorage.getItem('f1_config_v3');
             if (saved) config = { ...config, ...JSON.parse(saved) };
@@ -298,7 +327,15 @@
             updateLabels();
         }
 
-        function applyTheme(themeName) { body.setAttribute('data-theme', themeName); }
+        function applyTheme(themeName) { 
+            body.setAttribute('data-theme', themeName);
+            // 當切換主題時，如果不是在遊戲結算狀態，立即更新邊框顏色
+            if (state === 'idle' || state === 'sequence' || state === 'waiting') {
+                const hexColor = THEME_COLORS[themeName] || THEME_COLORS['default'];
+                setBrowserThemeColor(hexColor);
+            }
+        }
+
         function updateLabels() { valOffset.textContent = parseFloat(inputOffset.value).toFixed(2) + 's'; valDuration.textContent = parseFloat(inputDuration.value).toFixed(2) + 's'; }
 
         inputOffset.addEventListener('input', () => { updateLabels(); config.offset = parseFloat(inputOffset.value); });
@@ -416,11 +453,12 @@
 
         function finishGame() {
             const reactionTime = Math.floor(performance.now() - startTime);
-            
+            state = 'finished';
+
             if (reactionTime < 100) {
-                state = 'finished';
                 playFailSound();
-                body.className = 'state-fail';
+                body.className = 'state-fail'; html.className = 'state-fail';
+                setBrowserThemeColor(STATE_COLORS['fail']); // 更新邊框色
                 timerEl.textContent = reactionTime;
                 statusEl.textContent = "ANTICIPATED!";
                 triggerHaptic('fail');
@@ -428,14 +466,14 @@
                 return;
             }
 
-            state = 'finished';
-            
             if (reactionTime > 500) {
-                body.className = 'state-slow';
+                body.className = 'state-slow'; html.className = 'state-slow';
+                setBrowserThemeColor(STATE_COLORS['slow']); // 更新邊框色
                 statusEl.textContent = "+0.500s (SLOW)";
                 triggerHaptic('fail');
             } else {
-                body.className = 'state-success';
+                body.className = 'state-success'; html.className = 'state-success';
+                setBrowserThemeColor(STATE_COLORS['success']); // 更新邊框色
                 statusEl.textContent = reactionTime < 200 ? "F1 DRIVER PACE" : "GOOD REACTION";
                 body.classList.add('shake-effect');
                 setTimeout(() => body.classList.remove('shake-effect'), 500);
@@ -447,17 +485,19 @@
             shareBtn.style.display = 'inline-block';
         }
 
-        // ★ 修正版：搶跑時字體變小，並拆分文字 ★
         function falseStart() {
             state = 'finished';
             playFailSound();
             timeoutIds.forEach(id => clearTimeout(id));
-            body.className = 'state-fail';
+            
+            body.className = 'state-fail'; html.className = 'state-fail';
+            setBrowserThemeColor(STATE_COLORS['fail']); // 更新邊框色
+
             lights.forEach(l => l.classList.remove('on'));
             
-            timerEl.classList.add('text-mode'); // 縮小字體
-            timerEl.textContent = "JUMP"; // 只顯示 JUMP
-            statusEl.textContent = "FALSE START"; // 下面顯示 FALSE START
+            timerEl.classList.add('text-mode'); 
+            timerEl.textContent = "JUMP"; 
+            statusEl.textContent = "FALSE START"; 
             
             triggerHaptic('fail');
             shareBtn.style.display = 'none'; 
@@ -468,11 +508,16 @@
             timeoutIds.forEach(id => clearTimeout(id));
             timeoutIds = [];
             lights.forEach(l => l.classList.remove('on'));
-            body.className = ''; 
+            
+            // ★ 重置時：清除 CSS class，並將 meta color 恢復成主題色 ★
+            body.className = ''; html.className = '';
+            const themeHex = THEME_COLORS[config.theme] || THEME_COLORS['default'];
+            setBrowserThemeColor(themeHex);
+
             applyTheme(config.theme); 
             body.classList.remove('shake-effect');
             
-            timerEl.classList.remove('text-mode'); // 恢復正常數字字體
+            timerEl.classList.remove('text-mode'); 
             timerEl.textContent = "000";
             statusEl.textContent = "";
             shareBtn.style.display = 'none';
@@ -501,14 +546,11 @@
             statsBox.classList.add('visible');
         }
 
-        // ★ 修正版：圖片生成邏輯 (加入字體預載檢測與保底機制) ★
         shareBtn.addEventListener('click', async (e) => {
             e.stopPropagation();
             shareBtn.textContent = "Generating...";
             
-            // 確保字體已載入
             await document.fonts.ready;
-
             const canvas = document.getElementById('shareCanvas');
             const ctx = canvas.getContext('2d');
             
@@ -519,38 +561,27 @@
             else if (body.classList.contains('state-slow')) bgColor = '#553300';
             else if (body.classList.contains('state-fail')) bgColor = '#3a0000';
 
-            // Draw Background
             ctx.fillStyle = bgColor; ctx.fillRect(0, 0, 600, 400);
-            
-            // Draw Tech Overlay
             ctx.strokeStyle = 'rgba(255,255,255,0.1)'; ctx.lineWidth = 2;
             ctx.beginPath(); ctx.moveTo(20, 20); ctx.lineTo(580, 20); ctx.lineTo(580, 380); ctx.lineTo(20, 380); ctx.closePath(); ctx.stroke();
             
-            // Header
             ctx.fillStyle = 'rgba(255,255,255,0.7)'; ctx.font = 'bold 24px "Russo One", sans-serif'; ctx.textAlign = 'center'; 
             ctx.fillText('F1 REACTION TEST', 300, 70);
             
-            // Main Time
             ctx.font = 'bold 130px "Russo One", sans-serif'; ctx.fillStyle = '#ffffff'; 
             ctx.fillText(timerEl.textContent, 300, 210);
             ctx.font = '20px "Titillium Web", sans-serif'; ctx.fillStyle = accent; ctx.fillText('MILLISECONDS', 300, 250);
             
-            // Stats
             ctx.font = '24px monospace'; ctx.fillStyle = 'rgba(255,255,255,0.8)';
             const ao5 = document.getElementById('val-ao5').textContent;
             const pb = document.getElementById('val-pb').textContent;
             ctx.fillText(`AO5: ${ao5}  |  PB: ${pb}`, 300, 320);
             
-            // Footer
             ctx.font = '14px Arial'; ctx.fillStyle = 'rgba(255,255,255,0.4)'; 
             ctx.fillText(GITHUB_URL, 300, 370);
             
-            // Convert to Image
             const dataURL = canvas.toDataURL('image/png');
-            
-            // Try to Copy to Clipboard
             try {
-                // 如果是在不支援的環境，這裡會報錯，跳轉到 catch
                 canvas.toBlob(async (blob) => {
                     if (!blob) throw new Error("Blob failed");
                     const item = new ClipboardItem({ 'image/png': blob });
@@ -560,7 +591,6 @@
                 });
             } catch (err) {
                 console.log("Clipboard write failed, showing modal instead.");
-                // ★ 保底機制：顯示圖片彈窗 ★
                 resultImg.src = dataURL;
                 resultModal.classList.add('active');
                 shareBtn.textContent = "SHARE TELEMETRY";
