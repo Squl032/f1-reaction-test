@@ -4,21 +4,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>F1 Reaction Test Pro (Calibrated)</title>
+    <title>F1 Reaction Test Pro</title>
+    <meta name="theme-color" content="#000000">
+
     <link rel="icon"
         href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏎️</text></svg>">
-
     <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://squl032.github.io/f1-reaction-test/" />
-    <meta property="og:title" content="🏎️ F1 Reaction Test Pro (F1 起跑測試)" />
-    <meta property="og:description" content="你是 F1 車手級的反應神經嗎？挑戰擬真 F1 起跑燈號與音效測試！(電腦/手機皆可玩)" />
+    <meta property="og:title" content="🏎️ F1 Reaction Test Pro" />
+    <meta property="og:description" content="挑戰 F1 車手反應速度，你能多快起跑？" />
     <meta property="og:image" content="https://squl032.github.io/f1-reaction-test/og-image.png" />
 
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="🏎️ F1 Reaction Test Pro">
-    <meta name="twitter:description" content="挑戰 F1 車手反應速度，你能多快起跑？">
-    <meta name="twitter:image" content="https://squl032.github.io/f1-reaction-test/og-image.png">
-    <meta name="theme-color" content="#000000">
     <style>
         :root {
             --bg-color: #121212;
@@ -28,7 +23,6 @@
             --text-main: #ffffff;
             --text-sub: #888888;
             --accent: #e10600;
-            /* F1 Red */
         }
 
         * {
@@ -52,7 +46,18 @@
             user-select: none;
         }
 
-        /* 左上角齒輪按鈕 */
+        /* 安全區域修正：標題 */
+        .header {
+            position: absolute;
+            top: calc(20px + env(safe-area-inset-top));
+            font-size: 0.9rem;
+            color: var(--text-sub);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            pointer-events: none;
+        }
+
+        /* 安全區域修正：設定按鈕 */
         .settings-btn {
             position: absolute;
             top: calc(20px + env(safe-area-inset-top));
@@ -80,7 +85,7 @@
             fill: #fff;
         }
 
-        /* 設定面板 (Modal) */
+        /* 設定面板 Modal */
         .modal-overlay {
             position: fixed;
             top: 0;
@@ -121,7 +126,6 @@
             padding-bottom: 10px;
         }
 
-        /* 校準滑桿區 */
         .control-group {
             margin-bottom: 20px;
         }
@@ -185,20 +189,7 @@
             color: #fff;
         }
 
-        .btn:active {
-            transform: scale(0.98);
-        }
-
-        /* 遊戲介面 */
-        .header {
-            position: absolute;
-            top: calc(20px + env(safe-area-inset-top));
-            font-size: 0.9rem;
-            color: var(--text-sub);
-            letter-spacing: 1px;
-            text-transform: uppercase;
-        }
-
+        /* 燈號 */
         .gantry {
             background: #000;
             padding: 25px 40px;
@@ -207,7 +198,8 @@
             gap: 15px;
             box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
             border-bottom: 4px solid #333;
-            margin-bottom: 60px;
+            margin-bottom: 40px;
+            transition: transform 0.1s;
         }
 
         .light {
@@ -226,7 +218,6 @@
             transform: scale(1.05);
         }
 
-        /* 燈的光澤感 */
         .light::after {
             content: '';
             position: absolute;
@@ -243,13 +234,13 @@
             opacity: 0.6;
         }
 
-
+        /* 時間與數據區 */
         .timer-container {
-            height: 150px;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
+            min-height: 200px;
         }
 
         #timer {
@@ -257,6 +248,7 @@
             font-weight: 700;
             font-family: 'Courier New', monospace;
             letter-spacing: -3px;
+            line-height: 1;
         }
 
         #status {
@@ -265,8 +257,58 @@
             color: var(--text-sub);
             text-transform: uppercase;
             letter-spacing: 2px;
+            text-align: center;
         }
 
+        /* 新增：統計數據與分享按鈕 */
+        .stats-box {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            color: #888;
+            opacity: 0;
+            transition: opacity 0.5s;
+        }
+
+        .stats-box.visible {
+            opacity: 1;
+        }
+
+        .stat-item b {
+            color: #fff;
+            font-size: 1.1rem;
+        }
+
+        .btn-share {
+            margin-top: 25px;
+            background: #fff;
+            color: #000;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 30px;
+            font-weight: bold;
+            cursor: pointer;
+            display: none;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            transition: transform 0.1s;
+            z-index: 50;
+            /* 確保按鈕在最上層 */
+        }
+
+        .btn-share:active {
+            transform: scale(0.95);
+        }
+
+        .btn-share svg {
+            vertical-align: middle;
+            margin-right: 5px;
+            width: 18px;
+            height: 18px;
+        }
+
+        /* 狀態背景 */
         body.state-fail {
             background-color: #4a1a1a;
         }
@@ -281,6 +323,8 @@
             font-size: 0.8rem;
             color: #444;
             text-align: center;
+            width: 100%;
+            padding: 0 20px;
         }
 
         #audio-warning {
@@ -288,14 +332,38 @@
             display: none;
             margin-bottom: 5px;
         }
+
+        /* RWD */
+        @media (max-width: 600px) {
+            .gantry {
+                padding: 20px;
+                gap: 10px;
+            }
+
+            .light {
+                width: 45px;
+                height: 45px;
+            }
+
+            #timer {
+                font-size: 5rem;
+            }
+
+            .header {
+                width: 100%;
+                text-align: center;
+                padding-left: 50px;
+            }
+
+            /* 避免標題跟齒輪重疊 */
+        }
     </style>
 </head>
 
 <body>
 
     <div class="header">F1 Start Procedure</div>
-
-    <button class="settings-btn" id="open-settings" title="音訊校準">
+    <button class="settings-btn" id="open-settings" title="Audio Settings">
         <svg viewBox="0 0 24 24">
             <path
                 d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.07-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.74,8.87 C2.62,9.08,2.66,9.34,2.86,9.49l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.07,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.47-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z" />
@@ -304,28 +372,20 @@
 
     <div class="modal-overlay" id="settings-modal">
         <div class="modal-content">
-            <div class="modal-header">音效校準 (Audio Calibration)</div>
-
+            <div class="modal-header">Audio Calibration</div>
             <div class="control-group">
-                <div class="control-label">
-                    <span>起始延遲 (Start Offset)</span>
-                    <span id="val-offset" class="control-value">0.64s</span>
-                </div>
+                <div class="control-label"><span>Start Offset</span><span id="val-offset"
+                        class="control-value">0.64s</span></div>
                 <input type="range" id="input-offset" min="0" max="2" step="0.01" value="0.64">
-                <div style="font-size: 0.8rem; color:#666; margin-top:5px;">跳過音檔前段空白，使亮燈與聲音同步。</div>
             </div>
-
             <div class="control-group">
-                <div class="control-label">
-                    <span>播放長度 (Duration)</span>
-                    <span id="val-duration" class="control-value">0.80s</span>
-                </div>
+                <div class="control-label"><span>Duration</span><span id="val-duration"
+                        class="control-value">0.80s</span></div>
                 <input type="range" id="input-duration" min="0.1" max="2" step="0.05" value="0.8">
             </div>
-
             <div class="btn-row">
-                <button class="btn btn-test" id="btn-test-sound">🎵 試聽</button>
-                <button class="btn btn-save" id="btn-save">儲存並關閉</button>
+                <button class="btn btn-test" id="btn-test-sound">🎵 Test Sound</button>
+                <button class="btn btn-save" id="btn-save">Save & Close</button>
             </div>
         </div>
     </div>
@@ -341,23 +401,38 @@
     <div class="timer-container">
         <div id="timer">000</div>
         <div id="status">Tap to Start</div>
+
+        <div class="stats-box" id="stats-box">
+            <div class="stat-item">Ao5: <b id="val-ao5">---</b></div>
+            <div style="border-left: 1px solid #444;"></div>
+            <div class="stat-item">PB: <b id="val-pb">---</b></div>
+        </div>
+
+        <button class="btn-share" id="btn-share">
+            📷 Copy Score Card
+        </button>
     </div>
 
     <div class="footer">
-        <div id="audio-warning">⚠️ 請確認資料夾內有 f1-sound.mp3</div>
-        <div>Tap anywhere to start • Config via Gear Icon</div>
+        <div id="audio-warning">⚠️ No f1-sound.mp3 found</div>
+        <div>Tap anywhere • Config via Gear Icon</div>
     </div>
+
+    <canvas id="shareCanvas" width="600" height="400" style="display:none;"></canvas>
 
     <script>
         const AUDIO_FILENAME = 'f1-sound.mp3';
+        const GITHUB_URL = 'squl032.github.io/f1-reaction-test'; // 用於浮水印
 
-        // DOM Elements
+        // DOM
         const lights = Array.from(document.querySelectorAll('.light'));
         const timerEl = document.getElementById('timer');
         const statusEl = document.getElementById('status');
         const body = document.body;
+        const statsBox = document.getElementById('stats-box');
+        const shareBtn = document.getElementById('btn-share');
 
-        // Settings UI Elements
+        // Settings UI
         const settingsModal = document.getElementById('settings-modal');
         const openSettingsBtn = document.getElementById('open-settings');
         const closeSettingsBtn = document.getElementById('btn-save');
@@ -367,28 +442,31 @@
         const valOffset = document.getElementById('val-offset');
         const valDuration = document.getElementById('val-duration');
 
-        // Game State
+        // State & Stats
         let state = 'idle';
         let startTime = 0;
         let timeoutIds = [];
         let audioCtx = null;
         let beepBuffer = null;
 
-        // Audio Settings (預設值)
-        let audioConfig = {
-            offset: 0.64,
-            duration: 0.8
-        };
+        // 統計數據
+        let historyTimes = [];
+        let personalBest = null;
 
-        // --- 1. 設定與儲存功能 ---
+        let audioConfig = { offset: 0.64, duration: 0.8 };
+
+        // --- 設定功能 ---
         function loadSettings() {
             const saved = localStorage.getItem('f1_audio_config');
-            if (saved) {
-                audioConfig = JSON.parse(saved);
-            }
+            if (saved) audioConfig = JSON.parse(saved);
             inputOffset.value = audioConfig.offset;
             inputDuration.value = audioConfig.duration;
             updateLabels();
+
+            // 讀取歷史 PB
+            const savedPB = localStorage.getItem('f1_pb');
+            if (savedPB) personalBest = parseInt(savedPB);
+            updateStatsUI();
         }
 
         function saveSettings() {
@@ -406,29 +484,14 @@
         inputOffset.addEventListener('input', () => { updateLabels(); audioConfig.offset = parseFloat(inputOffset.value); });
         inputDuration.addEventListener('input', () => { updateLabels(); audioConfig.duration = parseFloat(inputDuration.value); });
 
-        openSettingsBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            settingsModal.classList.add('active');
-        });
-        closeSettingsBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            saveSettings();
-            settingsModal.classList.remove('active');
-        });
-        settingsModal.addEventListener('click', (e) => {
-            if (e.target === settingsModal) {
-                saveSettings();
-                settingsModal.classList.remove('active');
-            }
-        });
+        openSettingsBtn.addEventListener('click', (e) => { e.stopPropagation(); settingsModal.classList.add('active'); });
+        closeSettingsBtn.addEventListener('click', (e) => { e.stopPropagation(); saveSettings(); settingsModal.classList.remove('active'); });
 
-
-        // --- 2. 音訊核心 ---
+        // --- 音效核心 ---
         async function initAudio() {
             if (audioCtx) return;
             const AudioContext = window.AudioContext || window.webkitAudioContext;
             audioCtx = new AudioContext();
-
             try {
                 const response = await fetch(AUDIO_FILENAME);
                 if (!response.ok) throw new Error("File not found");
@@ -437,60 +500,47 @@
                     beepBuffer = decodedBuffer;
                     document.getElementById('audio-warning').style.display = 'none';
                     statusEl.textContent = "Audio Ready - Tap to Start";
-                }, (e) => { throw new Error("Decode failed"); });
+                });
             } catch (error) {
                 console.error(error);
                 document.getElementById('audio-warning').style.display = 'block';
-                statusEl.textContent = "Audio Error (check console)";
+                statusEl.textContent = "Audio Error";
             }
         }
 
         function playBeep() {
             if (!audioCtx || !beepBuffer) return;
             if (audioCtx.state === 'suspended') audioCtx.resume();
-
             const source = audioCtx.createBufferSource();
             source.buffer = beepBuffer;
-            const gainNode = audioCtx.createGain();
-            source.connect(gainNode);
-            gainNode.connect(audioCtx.destination);
+            const gain = audioCtx.createGain();
+            source.connect(gain);
+            gain.connect(audioCtx.destination);
             source.start(0, audioConfig.offset, audioConfig.duration);
         }
 
-        // ★ 新增：合成的失敗音效 (不需要外部檔案)
         function playFailSound() {
             if (!audioCtx) initAudio();
             if (audioCtx.state === 'suspended') audioCtx.resume();
-
             const t = audioCtx.currentTime;
             const osc = audioCtx.createOscillator();
             const gain = audioCtx.createGain();
-
-            // 使用鋸齒波製造粗糙的錯誤音
             osc.type = 'sawtooth';
-            // 頻率下降效果 (類似「叭——嗚——」)
             osc.frequency.setValueAtTime(150, t);
             osc.frequency.linearRampToValueAtTime(80, t + 0.5);
-
             gain.gain.setValueAtTime(0.5, t);
             gain.gain.linearRampToValueAtTime(0, t + 0.5);
-
             osc.connect(gain);
             gain.connect(audioCtx.destination);
             osc.start(t);
             osc.stop(t + 0.5);
         }
 
-        testSoundBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            if (!audioCtx) initAudio().then(playBeep);
-            else playBeep();
-        });
+        testSoundBtn.addEventListener('click', (e) => { e.stopPropagation(); if (!audioCtx) initAudio().then(playBeep); else playBeep(); });
 
-
-        // --- 3. 遊戲邏輯 ---
+        // --- 遊戲邏輯 ---
         function handleInput(e) {
-            if (e.target.closest('.settings-btn') || e.target.closest('.modal-content')) return;
+            if (e.target.closest('.settings-btn') || e.target.closest('.modal-content') || e.target.closest('.btn-share')) return;
             if (e.type === 'touchstart') e.preventDefault();
             if (!audioCtx) initAudio();
 
@@ -545,22 +595,27 @@
             body.className = 'state-success';
             timerEl.textContent = reactionTime;
 
+            // 更新數據
+            updateStatsData(reactionTime);
+
             let comment = "Good Reaction";
             if (reactionTime < 200) comment = "F1 DRIVER LEVEL! 🏆";
             else if (reactionTime > 500) comment = "Wake up!";
             statusEl.textContent = comment + " - Tap to retry";
+
+            // 顯示分享按鈕
+            shareBtn.style.display = 'inline-block';
         }
 
         function falseStart() {
             state = 'finished';
-            // ★ 在這裡呼叫失敗音效
             playFailSound();
-
             timeoutIds.forEach(id => clearTimeout(id));
             body.className = 'state-fail';
             lights.forEach(l => l.classList.remove('on'));
             timerEl.textContent = "JUMP";
             statusEl.textContent = "JUMP START";
+            shareBtn.style.display = 'none'; // 失敗就不給分享
         }
 
         function resetState() {
@@ -571,15 +626,108 @@
             body.className = '';
             timerEl.textContent = "000";
             statusEl.textContent = "";
+            shareBtn.style.display = 'none';
         }
 
-        // 初始化
+        // --- 統計數據與 Canvas 圖片生成 ---
+
+        function updateStatsData(time) {
+            // 更新 PB
+            if (!personalBest || time < personalBest) {
+                personalBest = time;
+                localStorage.setItem('f1_pb', personalBest);
+            }
+
+            // 更新 Ao5
+            historyTimes.push(time);
+            if (historyTimes.length > 5) historyTimes.shift();
+
+            updateStatsUI();
+        }
+
+        function getAo5() {
+            if (historyTimes.length < 5) return '---';
+            // 複製陣列並排序
+            let sorted = [...historyTimes].sort((a, b) => a - b);
+            // 去掉最大和最小，取中間三個
+            let sum = sorted[1] + sorted[2] + sorted[3];
+            return Math.floor(sum / 3);
+        }
+
+        function updateStatsUI() {
+            const ao5 = getAo5();
+            document.getElementById('val-ao5').textContent = ao5;
+            document.getElementById('val-pb').textContent = personalBest || '---';
+            statsBox.classList.add('visible');
+        }
+
+        // ★ Canvas 圖片生成核心
+        shareBtn.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            shareBtn.textContent = "Generating...";
+
+            const canvas = document.getElementById('shareCanvas');
+            const ctx = canvas.getContext('2d');
+
+            // 1. 繪製背景 (F1 綠)
+            ctx.fillStyle = '#1a4a2a';
+            ctx.fillRect(0, 0, 600, 400);
+
+            // 2. 繪製裝飾線條
+            ctx.strokeStyle = '#2a6a3a';
+            ctx.lineWidth = 10;
+            ctx.strokeRect(10, 10, 580, 380);
+
+            // 3. 繪製標題
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 30px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('F1 REACTION TEST', 300, 60);
+
+            // 4. 繪製主要成績 (大字)
+            const currentTime = timerEl.textContent;
+            ctx.font = 'bold 120px Courier New';
+            ctx.fillStyle = '#ffffff';
+            ctx.fillText(currentTime + ' ms', 300, 200);
+
+            // 5. 繪製 Ao5 和 PB
+            ctx.font = '24px Courier New';
+            ctx.fillStyle = '#cccccc';
+            const ao5 = document.getElementById('val-ao5').textContent;
+            const pb = document.getElementById('val-pb').textContent;
+            ctx.fillText(`Ao5: ${ao5}ms   |   PB: ${pb}ms`, 300, 280);
+
+            // 6. 繪製網址 (浮水印 - 防偽關鍵)
+            ctx.font = '16px Arial';
+            ctx.fillStyle = '#66a37a';
+            ctx.fillText(GITHUB_URL, 300, 350);
+
+            ctx.font = '12px Arial';
+            ctx.fillStyle = '#4a8a5a';
+            ctx.fillText(new Date().toLocaleString(), 300, 370); // 加日期時間
+
+            // 7. 轉換為 Blob 並複製到剪貼簿
+            try {
+                canvas.toBlob(async (blob) => {
+                    const item = new ClipboardItem({ 'image/png': blob });
+                    await navigator.clipboard.write([item]);
+                    shareBtn.innerHTML = "✅ Image Copied!";
+                    setTimeout(() => {
+                        shareBtn.innerHTML = "📷 Copy Score Card";
+                    }, 3000);
+                });
+            } catch (err) {
+                console.error(err);
+                shareBtn.textContent = "❌ Copy Failed";
+                alert("瀏覽器不支援自動複製圖片，請手動截圖。");
+            }
+        });
+
+        // Init
         loadSettings();
         document.addEventListener('touchstart', handleInput, { passive: false });
         document.addEventListener('mousedown', handleInput);
-        document.addEventListener('keydown', (e) => {
-            if (e.code === 'Space' || e.key === 'Enter') handleInput(e);
-        });
+        document.addEventListener('keydown', (e) => { if (e.code === 'Space' || e.key === 'Enter') handleInput(e); });
 
     </script>
 </body>
