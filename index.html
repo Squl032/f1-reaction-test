@@ -323,6 +323,7 @@
             box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
         }
 
+        /* 複製提示 Toast */
         #copy-toast {
             position: fixed;
             bottom: 100px;
@@ -638,7 +639,7 @@
 
     <div class="footer">
         <div id="audio-warning">⚠️ No f1-sound.mp3 found</div>
-        <div>v5.4 Pro • Config via Bottom Right</div>
+        <div>v5.5 PC Fix • Config via Bottom Right</div>
     </div>
 
     <div id="copy-toast">✅ Image Copied!</div>
@@ -877,7 +878,6 @@
             const reactionTime = Math.floor(performance.now() - startTime);
             state = 'finished';
 
-            // ★ 修正判定：50ms ★
             if (reactionTime < 50) {
                 playFailSound();
                 body.className = 'state-fail'; html.className = 'state-fail';
@@ -906,7 +906,6 @@
             timerEl.textContent = reactionTime;
             updateStatsData(reactionTime);
 
-            // Trigger Chart Update
             if (reactionTime < 600) {
                 updateChart(reactionTime);
             }
@@ -965,11 +964,10 @@
             statsBox.classList.add('visible');
         }
 
-        // --- ★ Chart Logic (50-500ms, Step 25) ★ ---
+        // --- Chart Logic (50-500ms, Step 25) ---
         function generateDistribution() {
             const labels = [];
             const data = [];
-            // ★ 修改：從 50 到 500，間隔 25 ★
             const step = 25;
             for (let i = 50; i <= 500; i += step) {
                 labels.push(i);
@@ -1004,7 +1002,6 @@
                     animation: false,
                     plugins: { legend: { display: false }, tooltip: { enabled: false } },
                     scales: {
-                        // ★ 修改：X 軸範圍對應數據 ★
                         x: { display: false, min: 50, max: 500 },
                         y: { display: false }
                     },
@@ -1020,7 +1017,6 @@
             const dist = generateDistribution();
             const userPoint = dist.labels.map(() => null);
 
-            // ★ 修改：計算最近的 25ms 落點 ★
             let closestIndex = Math.floor((currentScore - 50) / 25);
             if (closestIndex < 0) closestIndex = 0;
             if (closestIndex >= userPoint.length) closestIndex = userPoint.length - 1;
@@ -1048,6 +1044,7 @@
             }, 2500);
         }
 
+        // --- ★ Share Logic (Desktop/Mobile Split) ★ ---
         shareBtn.addEventListener('click', async (e) => {
             e.stopPropagation();
             await document.fonts.ready;
@@ -1083,11 +1080,15 @@
                 if (!blob) return;
                 const file = new File([blob], `f1-score-${Date.now()}.png`, { type: 'image/png' });
 
-                if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                // ★ NEW LOGIC: Only use System Share on Mobile ★
+                const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+                if (isMobile && navigator.canShare && navigator.canShare({ files: [file] })) {
                     try {
                         await navigator.share({ files: [file] });
                     } catch (err) { console.log("Share cancelled"); }
                 } else {
+                    // Desktop: Force Clipboard
                     try {
                         const item = new ClipboardItem({ 'image/png': blob });
                         await navigator.clipboard.write([item]);
