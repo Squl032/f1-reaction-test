@@ -45,7 +45,7 @@
 
 1.  **複製專案**：
     ```bash
-    git clone [https://github.com/squl032/f1-reaction-test.git](https://github.com/squl032/f1-reaction-test.git)
+    git clone https://github.com/squl032/f1-reaction-test.git
     ```
 2.  **準備音檔**：
     確保目錄下有名為 `f1-sound.mp3` 的音效檔案。
