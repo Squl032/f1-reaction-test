@@ -1,21 +1,18 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>F1 Reaction Test Pro</title>
-
+    
     <meta name="theme-color" content="#0b0c10" id="meta-theme-color">
-
+    
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Russo+One&family=Titillium+Web:wght@400;600;700&display=swap"
-        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Russo+One&family=Titillium+Web:wght@400;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-    <link rel="icon"
-        href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏎️</text></svg>">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏎️</text></svg>">
     <meta property="og:type" content="website" />
     <meta property="og:title" content="🏎️ F1 Reaction Test Pro" />
     <meta property="og:description" content="挑戰 F1 車手反應速度，你能多快起跑？" />
@@ -23,546 +20,107 @@
 
     <style>
         :root {
-            --bg-color: #0b0c10;
-            --panel-bg: #1f2833;
-            --light-off: #222;
-            --light-on: #ff0000;
-            --text-main: #ffffff;
-            --text-sub: #c5c6c7;
-            --accent: #66fcf1;
-            --danger: #ff003c;
-            --border-color: #45a29e;
-            --font-display: 'Russo One', sans-serif;
-            --font-ui: 'Titillium Web', sans-serif;
+            --bg-color: #0b0c10; --panel-bg: #1f2833; --light-off: #222; --light-on: #ff0000;
+            --text-main: #ffffff; --text-sub: #c5c6c7; --accent: #66fcf1; --danger: #ff003c;
+            --border-color: #45a29e; --font-display: 'Russo One', sans-serif; --font-ui: 'Titillium Web', sans-serif;
         }
+        [data-theme="ferrari"] { --bg-color: #1a0000; --panel-bg: #3d0000; --accent: #ffff00; --danger: #ff2800; }
+        [data-theme="redbull"] { --bg-color: #000c20; --panel-bg: #001a3d; --accent: #fcd700; --danger: #ff003c; }
+        [data-theme="mclaren"] { --bg-color: #1a0d00; --panel-bg: #2d1800; --accent: #66fcf1; --danger: #ff8000; }
+        [data-theme="mercedes"] { --bg-color: #0e1111; --panel-bg: #1c2222; --accent: #00d2be; --danger: #ff003c; }
 
-        [data-theme="ferrari"] {
-            --bg-color: #1a0000;
-            --panel-bg: #3d0000;
-            --accent: #ffff00;
-            --danger: #ff2800;
-        }
-
-        [data-theme="redbull"] {
-            --bg-color: #000c20;
-            --panel-bg: #001a3d;
-            --accent: #fcd700;
-            --danger: #ff003c;
-        }
-
-        [data-theme="mclaren"] {
-            --bg-color: #1a0d00;
-            --panel-bg: #2d1800;
-            --accent: #66fcf1;
-            --danger: #ff8000;
-        }
-
-        [data-theme="mercedes"] {
-            --bg-color: #0e1111;
-            --panel-bg: #1c2222;
-            --accent: #00d2be;
-            --danger: #ff003c;
-        }
-
-        * {
-            box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        html,
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        html, body { height: 100vh; margin: 0; overflow: hidden; touch-action: none; cursor: pointer; user-select: none; }
+        
         body {
-            height: 100vh;
-            margin: 0;
-            overflow: hidden;
-            touch-action: none;
-            cursor: pointer;
-            user-select: none;
-        }
-
-        body {
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            font-family: var(--font-ui);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+            background-color: var(--bg-color); color: var(--text-main); font-family: var(--font-ui);
+            display: flex; flex-direction: column; align-items: center; 
             justify-content: flex-start;
-            padding-top: calc(140px + env(safe-area-inset-top));
+            padding-top: calc(140px + env(safe-area-inset-top)); 
             transition: background-color 0.4s ease;
         }
+        
+        html.state-fail, body.state-fail { background-color: #3a0000 !important; }
+        html.state-success, body.state-success { background-color: #003311 !important; }
+        html.state-slow, body.state-slow { background-color: #553300 !important; }
 
-        html.state-fail,
-        body.state-fail {
-            background-color: #3a0000 !important;
-        }
+        .header { position: absolute; top: calc(50px + env(safe-area-inset-top)); font-family: var(--font-display); font-size: 0.8rem; color: var(--text-sub); letter-spacing: 2px; text-transform: uppercase; pointer-events: none; opacity: 0.6; z-index: 20; }
+        .mode-indicator { position: absolute; top: calc(75px + env(safe-area-inset-top)); font-family: var(--font-ui); font-size: 0.7rem; color: var(--accent); border: 1px solid var(--accent); padding: 2px 8px; border-radius: 4px; text-transform: uppercase; pointer-events: none; opacity: 0.8; z-index: 20; }
 
-        html.state-success,
-        body.state-success {
-            background-color: #003311 !important;
-        }
+        .settings-btn { position: absolute; bottom: 30px; right: 30px; z-index: 100; background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(5px); border: 1px solid rgba(255,255,255,0.2); border-radius: 50%; width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; }
+        .settings-btn:hover { background: rgba(255, 255, 255, 0.2); transform: scale(1.1); }
+        svg { width: 24px; height: 24px; fill: var(--text-main); }
 
-        html.state-slow,
-        body.state-slow {
-            background-color: #553300 !important;
-        }
+        .gantry { background: linear-gradient(180deg, #111 0%, #000 100%); padding: 30px 50px; border-radius: 30px; display: flex; gap: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.8), inset 0 1px 2px rgba(255,255,255,0.2); border: 1px solid #333; margin-bottom: 20px; position: relative; flex-shrink: 0; }
+        .gantry::before { content: ''; position: absolute; top: -10px; left: 10px; right: 10px; height: 15px; background: #111; border-radius: 10px 10px 0 0; z-index: -1; }
+        .light { width: 60px; height: 60px; background-color: var(--light-off); border-radius: 50%; border: 6px solid #000; position: relative; box-shadow: inset 0 5px 10px rgba(0,0,0,1); transition: transform 0.1s; }
+        .light.on { background-color: var(--light-on); box-shadow: 0 0 30px var(--light-on), inset 0 2px 5px rgba(255,255,255,0.5); transform: scale(1.05); border-color: #300; }
+        .light::after { content: ''; position: absolute; top: 15%; left: 15%; width: 35%; height: 25%; border-radius: 50%; background: linear-gradient(135deg, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0) 70%); opacity: 0.15; pointer-events: none; }
+        .light.on::after { opacity: 0.8; }
 
-        .header {
-            position: absolute;
-            top: calc(50px + env(safe-area-inset-top));
-            font-family: var(--font-display);
-            font-size: 0.8rem;
-            color: var(--text-sub);
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            pointer-events: none;
-            opacity: 0.6;
-            z-index: 20;
-        }
+        .timer-container { display: flex; flex-direction: column; align-items: center; justify-content: flex-start; width: 100%; max-width: 600px; position: relative; flex-grow: 1; }
+        #timer { font-family: var(--font-display); font-size: 7rem; font-weight: 400; letter-spacing: 2px; line-height: 1; font-variant-numeric: tabular-nums; text-shadow: 0 10px 30px rgba(0,0,0,0.5); z-index: 10;}
+        #timer.text-mode { font-size: 5rem; }
+        #status { margin-top: 10px; font-family: var(--font-ui); font-size: 1.5rem; font-weight: 600; color: var(--text-sub); text-transform: uppercase; letter-spacing: 3px; text-align: center; z-index: 10; }
 
-        .mode-indicator {
-            position: absolute;
-            top: calc(75px + env(safe-area-inset-top));
-            font-family: var(--font-ui);
-            font-size: 0.7rem;
-            color: var(--accent);
-            border: 1px solid var(--accent);
-            padding: 2px 8px;
-            border-radius: 4px;
-            text-transform: uppercase;
-            pointer-events: none;
-            opacity: 0.8;
-            z-index: 20;
-        }
+        .stats-box { display: flex; gap: 20px; margin-top: 15px; font-family: var(--font-ui); font-size: 1rem; color: var(--text-sub); opacity: 0; transition: opacity 0.5s; background: rgba(255,255,255,0.05); padding: 8px 20px; border-radius: 50px; z-index: 10; }
+        .stats-box.visible { opacity: 1; }
+        .stat-item b { color: var(--text-main); font-size: 1.2rem; margin-left: 5px; font-family: var(--font-display); }
 
-        .settings-btn {
-            position: absolute;
-            bottom: 30px;
-            right: 30px;
-            z-index: 100;
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(5px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 50%;
-            width: 50px;
-            height: 50px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
+        .inline-chart-container { width: 90%; height: 100px; margin-top: 20px; position: relative; opacity: 0; transition: opacity 0.5s; pointer-events: none; }
+        .inline-chart-container.visible { opacity: 1; }
 
-        .settings-btn:hover {
-            background: rgba(255, 255, 255, 0.2);
-            transform: scale(1.1);
-        }
-
-        svg {
-            width: 24px;
-            height: 24px;
-            fill: var(--text-main);
-        }
-
-        .gantry {
-            background: linear-gradient(180deg, #111 0%, #000 100%);
-            padding: 30px 50px;
-            border-radius: 30px;
-            display: flex;
-            gap: 20px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8), inset 0 1px 2px rgba(255, 255, 255, 0.2);
-            border: 1px solid #333;
-            margin-bottom: 20px;
-            position: relative;
-            flex-shrink: 0;
-        }
-
-        .gantry::before {
-            content: '';
-            position: absolute;
-            top: -10px;
-            left: 10px;
-            right: 10px;
-            height: 15px;
-            background: #111;
-            border-radius: 10px 10px 0 0;
-            z-index: -1;
-        }
-
-        .light {
-            width: 60px;
-            height: 60px;
-            background-color: var(--light-off);
-            border-radius: 50%;
-            border: 6px solid #000;
-            position: relative;
-            box-shadow: inset 0 5px 10px rgba(0, 0, 0, 1);
-            transition: transform 0.1s;
-        }
-
-        .light.on {
-            background-color: var(--light-on);
-            box-shadow: 0 0 30px var(--light-on), inset 0 2px 5px rgba(255, 255, 255, 0.5);
-            transform: scale(1.05);
-            border-color: #300;
-        }
-
-        .light::after {
-            content: '';
-            position: absolute;
-            top: 15%;
-            left: 15%;
-            width: 35%;
-            height: 25%;
-            border-radius: 50%;
-            background: linear-gradient(135deg, rgba(255, 255, 255, 0.8) 0%, rgba(255, 255, 255, 0) 70%);
-            opacity: 0.15;
-            pointer-events: none;
-        }
-
-        .light.on::after {
-            opacity: 0.8;
-        }
-
-        .timer-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: flex-start;
-            width: 100%;
-            max-width: 600px;
-            position: relative;
-            flex-grow: 1;
-        }
-
-        #timer {
-            font-family: var(--font-display);
-            font-size: 7rem;
-            font-weight: 400;
-            letter-spacing: 2px;
-            line-height: 1;
-            font-variant-numeric: tabular-nums;
-            text-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-            z-index: 10;
-        }
-
-        #timer.text-mode {
-            font-size: 5rem;
-        }
-
-        #status {
-            margin-top: 10px;
-            font-family: var(--font-ui);
-            font-size: 1.5rem;
-            font-weight: 600;
-            color: var(--text-sub);
-            text-transform: uppercase;
-            letter-spacing: 3px;
-            text-align: center;
-            z-index: 10;
-        }
-
-        .stats-box {
-            display: flex;
-            gap: 20px;
-            margin-top: 15px;
-            font-family: var(--font-ui);
-            font-size: 1rem;
-            color: var(--text-sub);
-            opacity: 0;
-            transition: opacity 0.5s;
-            background: rgba(255, 255, 255, 0.05);
-            padding: 8px 20px;
-            border-radius: 50px;
-            z-index: 10;
-        }
-
-        .stats-box.visible {
-            opacity: 1;
-        }
-
-        .stat-item b {
-            color: var(--text-main);
-            font-size: 1.2rem;
-            margin-left: 5px;
-            font-family: var(--font-display);
-        }
-
-        .inline-chart-container {
-            width: 90%;
-            height: 100px;
-            margin-top: 20px;
-            position: relative;
-            opacity: 0;
-            transition: opacity 0.5s;
-            pointer-events: none;
-        }
-
-        .inline-chart-container.visible {
-            opacity: 1;
-        }
-
-        .btn-share {
-            margin-top: 20px;
-            background: var(--text-main);
-            color: var(--bg-color);
-            border: none;
-            padding: 12px 25px;
-            border-radius: 50px;
-            font-family: var(--font-ui);
-            font-weight: 700;
-            font-size: 1rem;
-            cursor: pointer;
-            display: none;
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
-            transition: transform 0.1s, box-shadow 0.1s;
-            z-index: 50;
-        }
-
-        .btn-share:active {
-            transform: scale(0.95);
-            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
-        }
+        .btn-share { margin-top: 20px; background: var(--text-main); color: var(--bg-color); border: none; padding: 12px 25px; border-radius: 50px; font-family: var(--font-ui); font-weight: 700; font-size: 1rem; cursor: pointer; display: none; box-shadow: 0 10px 20px rgba(0,0,0,0.3); transition: transform 0.1s, box-shadow 0.1s; z-index: 50; }
+        .btn-share:active { transform: scale(0.95); box-shadow: 0 5px 10px rgba(0,0,0,0.2); }
 
         /* 複製提示 Toast */
         #copy-toast {
-            position: fixed;
-            bottom: 100px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(0, 0, 0, 0.8);
-            color: #fff;
-            padding: 10px 20px;
-            border-radius: 30px;
-            font-family: var(--font-ui);
-            font-size: 0.9rem;
-            pointer-events: none;
-            opacity: 0;
-            transition: opacity 0.3s;
-            z-index: 200;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            backdrop-filter: blur(5px);
+            position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%);
+            background: rgba(0,0,0,0.8); color: #fff; padding: 10px 20px; border-radius: 30px;
+            font-family: var(--font-ui); font-size: 0.9rem; pointer-events: none;
+            opacity: 0; transition: opacity 0.3s; z-index: 200; display: flex; align-items: center; gap: 8px;
+            border: 1px solid rgba(255,255,255,0.2); backdrop-filter: blur(5px);
         }
+        #copy-toast.visible { opacity: 1; }
 
-        #copy-toast.visible {
-            opacity: 1;
-        }
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(10px); z-index: 200; display: flex; justify-content: center; align-items: center; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
+        .modal-overlay.active { opacity: 1; pointer-events: auto; }
+        /* 增加彈窗高度以容納更多設定 */
+        .modal-content { background: var(--panel-bg); padding: 30px; border-radius: 20px; width: 90%; max-width: 400px; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 20px 50px rgba(0,0,0,0.5); text-align: center; max-height: 85vh; overflow-y: auto; }
+        .modal-header { font-family: var(--font-display); font-size: 1.5rem; margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; color: var(--text-main); letter-spacing: 1px; }
+        .control-group { margin-bottom: 15px; text-align: left; }
+        .control-label { display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 0.9rem; color: var(--text-sub); letter-spacing: 1px;}
+        .control-value { color: var(--accent); font-family: var(--font-display); }
+        select { width: 100%; padding: 10px; border-radius: 8px; background: rgba(0,0,0,0.3); color: #fff; border: 1px solid rgba(255,255,255,0.1); outline: none; font-family: var(--font-ui); cursor: pointer;}
+        input[type="range"] { width: 100%; height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; outline: none; -webkit-appearance: none; }
+        input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 22px; height: 22px; background: var(--text-main); border-radius: 50%; cursor: pointer; border: 2px solid var(--bg-color); }
+        .btn-row { display: flex; gap: 10px; margin-top: 15px; }
+        .btn { flex: 1; padding: 12px; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 1rem; font-family: var(--font-ui); transition: 0.2s; }
+        .btn-test { background: rgba(255,255,255,0.1); color: #fff; }
+        .btn-save { background: var(--text-main); color: var(--bg-color); }
 
-        .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.85);
-            backdrop-filter: blur(10px);
-            z-index: 200;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.2s;
-        }
-
-        .modal-overlay.active {
-            opacity: 1;
-            pointer-events: auto;
-        }
-
-        .modal-content {
-            background: var(--panel-bg);
-            padding: 30px;
-            border-radius: 20px;
-            width: 90%;
-            max-width: 400px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
-            text-align: center;
-        }
-
-        .modal-header {
-            font-family: var(--font-display);
-            font-size: 1.5rem;
-            margin-bottom: 20px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            padding-bottom: 10px;
-            color: var(--text-main);
-            letter-spacing: 1px;
-        }
-
-        .control-group {
-            margin-bottom: 20px;
-            text-align: left;
-        }
-
-        .control-label {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 5px;
-            font-size: 0.9rem;
-            color: var(--text-sub);
-            letter-spacing: 1px;
-        }
-
-        .control-value {
-            color: var(--accent);
-            font-family: var(--font-display);
-        }
-
-        select {
-            width: 100%;
-            padding: 10px;
-            border-radius: 8px;
-            background: rgba(0, 0, 0, 0.3);
-            color: #fff;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            outline: none;
-            font-family: var(--font-ui);
-            cursor: pointer;
-        }
-
-        input[type="range"] {
-            width: 100%;
-            height: 6px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 3px;
-            outline: none;
-            -webkit-appearance: none;
-        }
-
-        input[type="range"]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            width: 22px;
-            height: 22px;
-            background: var(--text-main);
-            border-radius: 50%;
-            cursor: pointer;
-            border: 2px solid var(--bg-color);
-        }
-
-        .btn-row {
-            display: flex;
-            gap: 10px;
-            margin-top: 15px;
-        }
-
-        .btn {
-            flex: 1;
-            padding: 12px;
-            border: none;
-            border-radius: 12px;
-            font-weight: bold;
-            cursor: pointer;
-            font-size: 1rem;
-            font-family: var(--font-ui);
-            transition: 0.2s;
-        }
-
-        .btn-test {
-            background: rgba(255, 255, 255, 0.1);
-            color: #fff;
-        }
-
-        .btn-save {
-            background: var(--text-main);
-            color: var(--bg-color);
-        }
-
-        .image-modal img {
-            max-width: 100%;
-            border-radius: 10px;
-            border: 1px solid #555;
-            margin-bottom: 10px;
-        }
-
-        .image-modal p {
-            font-size: 0.9rem;
-            color: #aaa;
-            margin-bottom: 10px;
-        }
-
-        .footer {
-            position: absolute;
-            bottom: 30px;
-            font-size: 0.8rem;
-            color: rgba(255, 255, 255, 0.3);
-            text-align: center;
-            width: 100%;
-            pointer-events: none;
-        }
-
-        #audio-warning {
-            color: var(--accent);
-            display: none;
-            margin-bottom: 5px;
-        }
-
-        .shake-effect {
-            animation: shake 0.4s cubic-bezier(.36, .07, .19, .97) both;
-        }
-
-        @keyframes shake {
-            0% {
-                transform: translate(1px, 1px) rotate(0deg);
-            }
-
-            10% {
-                transform: translate(-1px, -2px) rotate(-1deg);
-            }
-
-            30% {
-                transform: translate(3px, 2px) rotate(0deg);
-            }
-
-            50% {
-                transform: translate(-1px, 2px) rotate(-1deg);
-            }
-
-            70% {
-                transform: translate(3px, 1px) rotate(-1deg);
-            }
-
-            100% {
-                transform: translate(1px, -2px) rotate(-1deg);
-            }
-        }
-
-        @media (max-width: 600px) {
-            .gantry {
-                padding: 20px 30px;
-                gap: 10px;
-                border-radius: 20px;
-            }
-
-            .light {
-                width: 45px;
-                height: 45px;
-                border-width: 4px;
-            }
-
-            #timer {
-                font-size: 5rem;
-            }
-
-            #timer.text-mode {
-                font-size: 4rem;
-            }
+        .image-modal img { max-width: 100%; border-radius: 10px; border: 1px solid #555; margin-bottom: 10px; }
+        .image-modal p { font-size: 0.9rem; color: #aaa; margin-bottom: 10px; }
+        
+        .footer { position: absolute; bottom: 30px; font-size: 0.8rem; color: rgba(255,255,255,0.3); text-align: center; width: 100%; pointer-events: none; }
+        #audio-warning { color: var(--accent); display: none; margin-bottom: 5px; }
+        .shake-effect { animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both; }
+        @keyframes shake { 0% { transform: translate(1px, 1px) rotate(0deg); } 10% { transform: translate(-1px, -2px) rotate(-1deg); } 30% { transform: translate(3px, 2px) rotate(0deg); } 50% { transform: translate(-1px, 2px) rotate(-1deg); } 70% { transform: translate(3px, 1px) rotate(-1deg); } 100% { transform: translate(1px, -2px) rotate(-1deg); } }
+        
+        @media (max-width: 600px) { 
+            .gantry { padding: 20px 30px; gap: 10px; border-radius: 20px; } 
+            .light { width: 45px; height: 45px; border-width: 4px; } 
+            #timer { font-size: 5rem; } 
+            #timer.text-mode { font-size: 4rem; } 
         }
     </style>
 </head>
-
 <body data-theme="default">
 
     <div class="header">F1 Start Procedure</div>
     <div class="mode-indicator" id="mode-indicator">TAP MODE</div>
-
-    <button class="settings-btn" id="open-settings" title="Settings"><svg viewBox="0 0 24 24">
-            <path
-                d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.07-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.74,8.87 C2.62,9.08,2.66,9.34,2.86,9.49l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.07,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.47-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z" />
-        </svg></button>
+    
+    <button class="settings-btn" id="open-settings" title="Settings"><svg viewBox="0 0 24 24"><path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.07-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.74,8.87 C2.62,9.08,2.66,9.34,2.86,9.49l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.07,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.47-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/></svg></button>
 
     <div class="modal-overlay" id="settings-modal">
         <div class="modal-content">
@@ -574,6 +132,16 @@
                     <option value="clutch">Clutch (Hold & Release)</option>
                 </select>
             </div>
+            
+            <div class="control-group">
+                <div class="control-label"><span>A/V Sync (Delay)</span><span id="val-sync" class="control-value">0ms</span></div>
+                <input type="range" id="input-sync" min="-200" max="200" step="10" value="0">
+                <div style="font-size:0.75rem; color:#666; margin-top:5px; display:flex; justify-content:space-between;">
+                    <span>Early (Audio First)</span>
+                    <span>Late (Light First)</span>
+                </div>
+            </div>
+
             <div class="control-group">
                 <div class="control-label"><span>Livery Theme</span></div>
                 <select id="select-theme">
@@ -584,18 +152,14 @@
                     <option value="mercedes">Silver Arrows</option>
                 </select>
             </div>
+            
             <div class="control-group">
-                <div class="control-label"><span>Audio Offset</span><span id="val-offset"
-                        class="control-value">0.64s</span></div>
+                <div class="control-label"><span>File Trim (Start)</span><span id="val-offset" class="control-value">0.64s</span></div>
                 <input type="range" id="input-offset" min="0" max="2" step="0.01" value="0.64">
             </div>
-            <div class="control-group">
-                <div class="control-label"><span>Beep Duration</span><span id="val-duration"
-                        class="control-value">0.80s</span></div>
-                <input type="range" id="input-duration" min="0.1" max="2" step="0.05" value="0.8">
-            </div>
+            
             <div class="btn-row">
-                <button class="btn btn-test" id="btn-test-sound">Sound Check</button>
+                <button class="btn btn-test" id="btn-test-sound">Sync Test</button>
                 <button class="btn btn-save" id="btn-save">Confirm</button>
             </div>
         </div>
@@ -623,13 +187,13 @@
     <div class="timer-container">
         <div id="timer">000</div>
         <div id="status">TAP TO START</div>
-
+        
         <div class="stats-box" id="stats-box">
             <div class="stat-item">AO5 <b id="val-ao5">---</b></div>
             <div style="width: 1px; background: rgba(255,255,255,0.2);"></div>
             <div class="stat-item">PB <b id="val-pb">---</b></div>
         </div>
-
+        
         <div class="inline-chart-container" id="chart-container">
             <canvas id="inlineChart"></canvas>
         </div>
@@ -639,17 +203,17 @@
 
     <div class="footer">
         <div id="audio-warning">⚠️ No f1-sound.mp3 found</div>
-        <div>v5.5 PC Fix • Config via Bottom Right</div>
+        <div>v6.0 Sync • Config via Bottom Right</div>
     </div>
-
+    
     <div id="copy-toast">✅ Image Copied!</div>
 
     <canvas id="shareCanvas" width="1200" height="800" style="display:none;"></canvas>
 
     <script>
         const AUDIO_FILENAME = 'f1-sound.mp3';
-        const GITHUB_URL = 'squl032.github.io/f1-reaction-test';
-
+        const GITHUB_URL = 'squl032.github.io/f1-reaction-test'; 
+        
         const lights = Array.from(document.querySelectorAll('.light'));
         const timerEl = document.getElementById('timer');
         const statusEl = document.getElementById('status');
@@ -661,7 +225,7 @@
         const chartContainer = document.getElementById('chart-container');
         const shareBtn = document.getElementById('btn-share');
         const copyToast = document.getElementById('copy-toast');
-
+        
         const settingsModal = document.getElementById('settings-modal');
         const resultModal = document.getElementById('result-modal');
         const resultImg = document.getElementById('result-img');
@@ -669,23 +233,28 @@
         const closeSettingsBtn = document.getElementById('btn-save');
         const closeResultBtn = document.getElementById('close-result-btn');
         const testSoundBtn = document.getElementById('btn-test-sound');
-        const inputOffset = document.getElementById('input-offset');
-        const inputDuration = document.getElementById('input-duration');
+        
+        const inputOffset = document.getElementById('input-offset'); // File trim
+        const inputSync = document.getElementById('input-sync');     // A/V Sync
+        const inputDuration = document.getElementById('input-duration'); // Hidden in UI but kept in logic if needed, or we removed it? UI removed it, logic kept for safety.
+        
         const valOffset = document.getElementById('val-offset');
-        const valDuration = document.getElementById('val-duration');
+        const valSync = document.getElementById('val-sync');
+        
         const selectTheme = document.getElementById('select-theme');
         const selectMode = document.getElementById('select-mode');
 
-        let state = 'idle';
+        let state = 'idle'; 
         let startTime = 0;
         let timeoutIds = [];
         let audioCtx = null;
         let beepBuffer = null;
-        let historyTimes = [];
+        let historyTimes = []; 
         let personalBest = null;
-        let chartInstance = null;
+        let chartInstance = null; 
 
-        let config = { offset: 0.64, duration: 0.8, theme: 'default', mode: 'tap' };
+        // Config v7: Added sync
+        let config = { offset: 0.64, sync: 0, duration: 0.8, theme: 'default', mode: 'tap' };
 
         const THEME_COLORS = { 'default': '#0b0c10', 'ferrari': '#1a0000', 'redbull': '#000c20', 'mclaren': '#1a0d00', 'mercedes': '#0e1111' };
         const STATE_COLORS = { 'success': '#003311', 'fail': '#3a0000', 'slow': '#553300' };
@@ -693,38 +262,40 @@
         function setBrowserThemeColor(color) { if (metaThemeColor) metaThemeColor.setAttribute('content', color); }
 
         function loadSettings() {
-            const saved = localStorage.getItem('f1_config_v6');
+            const saved = localStorage.getItem('f1_config_v7');
             if (saved) config = { ...config, ...JSON.parse(saved) };
+            
             inputOffset.value = config.offset;
-            inputDuration.value = config.duration;
+            inputSync.value = config.sync; // Load sync value
             selectTheme.value = config.theme;
             selectMode.value = config.mode;
+            
             applyTheme(config.theme);
             applyMode(config.mode);
             updateLabels();
             const savedPB = localStorage.getItem('f1_pb');
-            if (savedPB) personalBest = parseInt(savedPB);
+            if(savedPB) personalBest = parseInt(savedPB);
             updateStatsUI();
         }
 
         function saveSettings() {
             config.offset = parseFloat(inputOffset.value);
-            config.duration = parseFloat(inputDuration.value);
+            config.sync = parseInt(inputSync.value); // Save sync value
             config.theme = selectTheme.value;
             config.mode = selectMode.value;
-            localStorage.setItem('f1_config_v6', JSON.stringify(config));
+            localStorage.setItem('f1_config_v7', JSON.stringify(config));
             applyTheme(config.theme);
             applyMode(config.mode);
             updateLabels();
         }
 
-        function applyTheme(themeName) {
+        function applyTheme(themeName) { 
             body.setAttribute('data-theme', themeName);
             if (state === 'idle' || state === 'sequence' || state === 'waiting' || state === 'armed') {
                 const hexColor = THEME_COLORS[themeName] || THEME_COLORS['default'];
                 setBrowserThemeColor(hexColor);
             }
-            if (chartInstance) updateChartColors();
+            if(chartInstance) updateChartColors(); 
         }
 
         function applyMode(mode) {
@@ -734,12 +305,16 @@
             }
         }
 
-        function updateLabels() { valOffset.textContent = parseFloat(inputOffset.value).toFixed(2) + 's'; valDuration.textContent = parseFloat(inputDuration.value).toFixed(2) + 's'; }
+        function updateLabels() { 
+            valOffset.textContent = parseFloat(inputOffset.value).toFixed(2) + 's'; 
+            valSync.textContent = inputSync.value + 'ms'; 
+        }
 
+        // Listeners
         inputOffset.addEventListener('input', (e) => { e.stopPropagation(); updateLabels(); config.offset = parseFloat(inputOffset.value); });
-        inputDuration.addEventListener('input', (e) => { e.stopPropagation(); updateLabels(); config.duration = parseFloat(inputDuration.value); });
-        selectTheme.addEventListener('change', (e) => { e.stopPropagation(); });
-        selectMode.addEventListener('change', (e) => { e.stopPropagation(); });
+        inputSync.addEventListener('input', (e) => { e.stopPropagation(); updateLabels(); config.sync = parseInt(inputSync.value); });
+        selectTheme.addEventListener('change', (e) => { e.stopPropagation(); }); 
+        selectMode.addEventListener('change', (e) => { e.stopPropagation(); }); 
 
         openSettingsBtn.addEventListener('click', (e) => { e.stopPropagation(); settingsModal.classList.add('active'); });
         closeSettingsBtn.addEventListener('click', (e) => { e.stopPropagation(); saveSettings(); settingsModal.classList.remove('active'); });
@@ -778,7 +353,7 @@
                 const osc = audioCtx.createOscillator();
                 const gain = audioCtx.createGain();
                 osc.type = 'square';
-                osc.frequency.setValueAtTime(660, t);
+                osc.frequency.setValueAtTime(660, t); 
                 gain.gain.setValueAtTime(0.1, t);
                 gain.gain.exponentialRampToValueAtTime(0.01, t + 0.3);
                 osc.connect(gain);
@@ -805,7 +380,26 @@
             osc.stop(t + 0.5);
         }
 
-        testSoundBtn.addEventListener('click', (e) => { e.stopPropagation(); if (!audioCtx) initAudio().then(playBeep); else playBeep(); });
+        // Test Sound Button: Fires visual and audio for sync check
+        testSoundBtn.addEventListener('click', (e) => { 
+            e.stopPropagation(); 
+            if(!audioCtx) initAudio().then(doSyncTest); 
+            else doSyncTest();
+        });
+
+        function doSyncTest() {
+            // Flash first light and play sound with sync setting
+            lights[0].classList.add('on');
+            
+            // Audio delay logic
+            const baseDelay = 0; // immediate
+            let audioDelay = baseDelay + config.sync; 
+            
+            if (audioDelay < 0) audioDelay = 0; // Can't go back in time for immediate test
+            
+            setTimeout(() => { playBeep(); }, audioDelay);
+            setTimeout(() => { lights[0].classList.remove('on'); }, 500);
+        }
 
         function triggerHaptic(type) {
             if (!navigator.vibrate) return;
@@ -817,7 +411,7 @@
         function handlePress(e) {
             if (settingsModal.classList.contains('active') || resultModal.classList.contains('active')) return;
             if (e.target.closest('button') || e.target.closest('.modal-content')) return;
-
+            
             if (e.type === 'touchstart') e.preventDefault();
             if (!audioCtx) initAudio();
 
@@ -843,20 +437,42 @@
             if (config.mode === 'tap') state = 'sequence';
             if (config.mode === 'clutch') state = 'sequence';
             statusEl.textContent = "SEQUENCE START";
+            
+            // ★ Updated Loop with A/V Sync Support ★
             for (let i = 0; i < 5; i++) {
+                const lightDelay = (i + 1) * 1000;
+                
+                // Calculate Audio Delay (Light Time + Sync Offset)
+                // If offset is negative (audio early), we subtract. 
+                // e.g. Light at 1000ms, Sync -100ms => Audio at 900ms.
+                let audioDelay = lightDelay + config.sync;
+                
+                // Safety check: Audio can't start before 0
+                if (audioDelay < 0) audioDelay = 0;
+
+                // Schedule Light
                 timeoutIds.push(setTimeout(() => {
                     if (state !== 'sequence') return;
                     lights[i].classList.add('on');
+                    triggerHaptic('tick'); 
+                }, lightDelay));
+
+                // Schedule Audio
+                timeoutIds.push(setTimeout(() => {
+                    if (state !== 'sequence') return;
                     playBeep();
-                    triggerHaptic('tick');
-                }, (i + 1) * 1000));
+                }, audioDelay));
             }
-            const randomDelay = Math.random() * 2800 + 200;
+
+            const randomDelay = Math.random() * 2800 + 200; 
+            // Lights Out is 6000ms + random
+            const lightsOutTime = 6000; 
+            
             timeoutIds.push(setTimeout(() => {
                 if (state !== 'sequence') return;
                 state = 'waiting';
                 timeoutIds.push(setTimeout(lightsOut, randomDelay));
-            }, 6000));
+            }, lightsOutTime));
         }
 
         function lightsOut() {
@@ -881,22 +497,22 @@
             if (reactionTime < 50) {
                 playFailSound();
                 body.className = 'state-fail'; html.className = 'state-fail';
-                setBrowserThemeColor(STATE_COLORS['fail']);
+                setBrowserThemeColor(STATE_COLORS['fail']); 
                 timerEl.textContent = reactionTime;
                 statusEl.textContent = "ANTICIPATED! (<50ms)";
                 triggerHaptic('fail');
-                shareBtn.style.display = 'none';
+                shareBtn.style.display = 'none'; 
                 return;
             }
 
             if (reactionTime > 500) {
                 body.className = 'state-slow'; html.className = 'state-slow';
-                setBrowserThemeColor(STATE_COLORS['slow']);
+                setBrowserThemeColor(STATE_COLORS['slow']); 
                 statusEl.textContent = "+0.500s (SLOW)";
                 triggerHaptic('fail');
             } else {
                 body.className = 'state-success'; html.className = 'state-success';
-                setBrowserThemeColor(STATE_COLORS['success']);
+                setBrowserThemeColor(STATE_COLORS['success']); 
                 statusEl.textContent = reactionTime < 200 ? "F1 DRIVER PACE" : "GOOD REACTION";
                 body.classList.add('shake-effect');
                 setTimeout(() => body.classList.remove('shake-effect'), 500);
@@ -905,7 +521,7 @@
 
             timerEl.textContent = reactionTime;
             updateStatsData(reactionTime);
-
+            
             if (reactionTime < 600) {
                 updateChart(reactionTime);
             }
@@ -917,11 +533,11 @@
             playFailSound();
             timeoutIds.forEach(id => clearTimeout(id));
             body.className = 'state-fail'; html.className = 'state-fail';
-            setBrowserThemeColor(STATE_COLORS['fail']);
+            setBrowserThemeColor(STATE_COLORS['fail']); 
             lights.forEach(l => l.classList.remove('on'));
-            timerEl.classList.add('text-mode'); timerEl.textContent = "JUMP"; statusEl.textContent = "FALSE START";
+            timerEl.classList.add('text-mode'); timerEl.textContent = "JUMP"; statusEl.textContent = "FALSE START"; 
             triggerHaptic('fail');
-            shareBtn.style.display = 'none';
+            shareBtn.style.display = 'none'; 
         }
 
         function resetState() {
@@ -932,12 +548,11 @@
             body.className = ''; html.className = '';
             const themeHex = THEME_COLORS[config.theme] || THEME_COLORS['default'];
             setBrowserThemeColor(themeHex);
-            applyTheme(config.theme);
+            applyTheme(config.theme); 
             body.classList.remove('shake-effect');
             timerEl.classList.remove('text-mode'); timerEl.textContent = "000";
             statusEl.textContent = config.mode === 'tap' ? "TAP TO START" : "HOLD TO START";
             shareBtn.style.display = 'none';
-
             chartContainer.classList.remove('visible');
         }
 
@@ -953,7 +568,7 @@
 
         function getAo5() {
             if (historyTimes.length < 5) return '---';
-            let sorted = [...historyTimes].sort((a, b) => a - b);
+            let sorted = [...historyTimes].sort((a,b)=>a-b);
             let sum = sorted[1] + sorted[2] + sorted[3];
             return Math.floor(sum / 3);
         }
@@ -964,15 +579,15 @@
             statsBox.classList.add('visible');
         }
 
-        // --- Chart Logic (50-500ms, Step 25) ---
+        // --- Chart Logic ---
         function generateDistribution() {
             const labels = [];
             const data = [];
             const step = 25;
-            for (let i = 50; i <= 500; i += step) {
+            for(let i=50; i<=500; i+=step) {
                 labels.push(i);
                 const x = i;
-                const mean = 220; const std = 45;
+                const mean = 220; const std = 45; 
                 const prob = (1 / (std * Math.sqrt(2 * Math.PI))) * Math.exp(-0.5 * Math.pow((x - mean) / std, 2));
                 data.push(prob * 10000);
             }
@@ -989,7 +604,7 @@
                     labels: dist.labels,
                     datasets: [{
                         data: dist.data,
-                        borderColor: 'rgba(255,255,255,0.3)',
+                        borderColor: 'rgba(255,255,255,0.3)', 
                         borderWidth: 2,
                         tension: 0.4,
                         pointRadius: 0,
@@ -1012,15 +627,15 @@
 
         function updateChart(currentScore) {
             chartContainer.classList.add('visible');
-            if (!chartInstance) initChart();
+            if(!chartInstance) initChart();
 
             const dist = generateDistribution();
             const userPoint = dist.labels.map(() => null);
-
+            
             let closestIndex = Math.floor((currentScore - 50) / 25);
-            if (closestIndex < 0) closestIndex = 0;
-            if (closestIndex >= userPoint.length) closestIndex = userPoint.length - 1;
-
+            if(closestIndex < 0) closestIndex = 0;
+            if(closestIndex >= userPoint.length) closestIndex = userPoint.length - 1;
+            
             userPoint[closestIndex] = dist.data[closestIndex];
 
             chartInstance.data.datasets[1] = {
@@ -1035,7 +650,7 @@
             chartInstance.update();
         }
 
-        function updateChartColors() { }
+        function updateChartColors() {}
 
         function showCopyToast() {
             copyToast.classList.add('visible');
@@ -1044,13 +659,12 @@
             }, 2500);
         }
 
-        // --- ★ Share Logic (Desktop/Mobile Split) ★ ---
         shareBtn.addEventListener('click', async (e) => {
             e.stopPropagation();
             await document.fonts.ready;
             const canvas = document.getElementById('shareCanvas');
             const ctx = canvas.getContext('2d');
-
+            
             let bgColor = getComputedStyle(body).getPropertyValue('--bg-color');
             let accent = getComputedStyle(body).getPropertyValue('--text-main');
             if (body.classList.contains('state-success')) bgColor = '#003311';
@@ -1060,27 +674,26 @@
             ctx.fillStyle = bgColor; ctx.fillRect(0, 0, 1200, 800);
             ctx.strokeStyle = 'rgba(255,255,255,0.1)'; ctx.lineWidth = 4;
             ctx.beginPath(); ctx.moveTo(40, 40); ctx.lineTo(1160, 40); ctx.lineTo(1160, 760); ctx.lineTo(40, 760); ctx.closePath(); ctx.stroke();
-
-            ctx.fillStyle = 'rgba(255,255,255,0.7)'; ctx.font = 'bold 48px "Russo One", sans-serif'; ctx.textAlign = 'center';
+            
+            ctx.fillStyle = 'rgba(255,255,255,0.7)'; ctx.font = 'bold 48px "Russo One", sans-serif'; ctx.textAlign = 'center'; 
             ctx.fillText('F1 REACTION TEST', 600, 140);
-
-            ctx.font = 'bold 260px "Russo One", sans-serif'; ctx.fillStyle = '#ffffff';
+            
+            ctx.font = 'bold 260px "Russo One", sans-serif'; ctx.fillStyle = '#ffffff'; 
             ctx.fillText(timerEl.textContent, 600, 420);
             ctx.font = '40px "Titillium Web", sans-serif'; ctx.fillStyle = accent; ctx.fillText('MILLISECONDS', 600, 500);
-
+            
             ctx.font = '48px monospace'; ctx.fillStyle = 'rgba(255,255,255,0.8)';
             const ao5 = document.getElementById('val-ao5').textContent;
             const pb = document.getElementById('val-pb').textContent;
             ctx.fillText(`AO5: ${ao5}  |  PB: ${pb}`, 600, 680);
-
+            
             ctx.font = '28px Arial'; ctx.fillStyle = 'rgba(255,255,255,0.4)'; ctx.fillText(GITHUB_URL, 600, 740);
-
+            
             const dataURL = canvas.toDataURL('image/png');
             canvas.toBlob(async (blob) => {
                 if (!blob) return;
                 const file = new File([blob], `f1-score-${Date.now()}.png`, { type: 'image/png' });
-
-                // ★ NEW LOGIC: Only use System Share on Mobile ★
+                
                 const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
                 if (isMobile && navigator.canShare && navigator.canShare({ files: [file] })) {
@@ -1088,7 +701,6 @@
                         await navigator.share({ files: [file] });
                     } catch (err) { console.log("Share cancelled"); }
                 } else {
-                    // Desktop: Force Clipboard
                     try {
                         const item = new ClipboardItem({ 'image/png': blob });
                         await navigator.clipboard.write([item]);
@@ -1100,14 +712,14 @@
             });
         });
 
-        document.addEventListener('touchstart', handlePress, { passive: false });
+        document.addEventListener('touchstart', handlePress, {passive: false});
         document.addEventListener('mousedown', handlePress);
-        document.addEventListener('touchend', handleRelease, { passive: false });
+        document.addEventListener('touchend', handleRelease, {passive: false});
         document.addEventListener('mouseup', handleRelease);
-        document.addEventListener('keydown', (e) => {
-            if (e.code === 'Space' || e.key === 'Enter') handlePress({ type: 'mousedown', target: body, preventDefault: () => { } });
+        document.addEventListener('keydown', (e) => { 
+            if (e.code === 'Space' || e.key === 'Enter') handlePress({ type: 'mousedown', target: body, preventDefault: () => {} });
         });
-        document.addEventListener('keyup', (e) => {
+        document.addEventListener('keyup', (e) => { 
             if (e.code === 'Space' || e.key === 'Enter') handleRelease();
         });
 
@@ -1115,5 +727,4 @@
         initChart(); 
     </script>
 </body>
-
 </html>
